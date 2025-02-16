@@ -289,7 +289,7 @@ vsepr_geometries = {
         ]
     },
     "5_1": {
-        "shape_name": "5 電子域, 1 LP: Seesaw (鞦韆形)",
+        "shape_name": "5 電子域, 1 LP: Seesaw (蹺蹺板形)",
         "domains": [
             {"pos": (0, 0, 2.5), "type": "bond"},
             {"pos": (0, 0, -2.5), "type": "bond"},
