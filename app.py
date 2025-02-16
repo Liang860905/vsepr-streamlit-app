@@ -3,7 +3,7 @@ import py3Dmol
 import math
 import base64
 
-# 自訂 CSS：讓 radio 按鈕水平排列（多行自動換行）
+# 自訂 CSS：讓 radio 按鈕水平排列（多行自動換行）以及全頁置中
 st.markdown(
     """
     <style>
@@ -12,7 +12,6 @@ st.markdown(
       flex-wrap: wrap;
       justify-content: center;
     }
-    /* 可嘗試將整個頁面內容置中 */
     .center-all {
       text-align: center;
     }
@@ -21,7 +20,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# 將整個頁面內容包在一個置中的 div 裡
+# 包含所有內容的外層容器
 st.markdown("<div class='center-all'>", unsafe_allow_html=True)
 
 # -------------------------------
@@ -47,11 +46,11 @@ def add_axes(view, axis_length=3.0):
                           'radius': 0.05, 'color': c})
 
 def teardrop_radius_modified(t, A=0.8, t0=0.8):
-    return A * math.sin(math.pi * t / (2*t0)) if t<=t0 else A * (1-t) / (1-t0)
+    return A * math.sin(math.pi*t/(2*t0)) if t<=t0 else A*(1-t)/(1-t0)
 
 def perpendicular_vector(v):
     vx, vy, vz = v
-    if abs(vx)<1e-6 and abs(vy)<1e-6:
+    if abs(vx) < 1e-6 and abs(vy) < 1e-6:
         return (1,0,0)
     perp = (-vy, vx, 0)
     n = norm(perp)
@@ -128,7 +127,7 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
     view = py3Dmol.view(width=360, height=360)
     add_axes(view, axis_length=3.0)
     view.addSphere({'center': {'x': 0, 'y': 0, 'z': 0},
-                    'radius': 0.5, 'color':'black','opacity':1.0})
+                    'radius': 0.5, 'color': 'black','opacity': 1.0})
     for d in domains:
         x,y,z = d['pos']
         col = 'lightblue' if d['type']=='bond' else 'pink'
@@ -137,12 +136,11 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
     if show_angle_labels and all(d['type']=='bond' for d in domains):
         add_angle_labels(view, domains)
     
-    ed_count = len(domains)
-    if ed_count==2:
+    if len(domains)==2:
         view.rotate(90, 'y')
-    elif ed_count==3:
+    elif len(domains)==3:
         view.rotate(90, 'z')
-    elif ed_count==6:
+    elif len(domains)==6:
         if any(keyword in shape_name for keyword in ["平面四方", "T-shaped", "T形"]):
             pass
         elif any(keyword in shape_name for keyword in ["直線"]):
@@ -271,7 +269,7 @@ html_str = show_vsepr_teardrop(data["domains"], data["shape_name"], show_angle_l
 # 模型名稱置中，字體大小 16px
 st.markdown(f"<p style='font-size:16px; text-align:center;'>{data['shape_name']}</p>", unsafe_allow_html=True)
 
-# 將 3D 模型 HTML 轉成 base64，再嵌入 iframe（外層 380×380，置中）
+# 將 3D 模型 HTML 轉成 base64，再嵌入 iframe（外層尺寸 380×380，置中）
 html_base64 = base64.b64encode(html_str.encode('utf-8')).decode('utf-8')
 iframe_html = f"""
 <iframe src="data:text/html;base64,{html_base64}" style="border:2px solid #000; width:380px; height:380px; box-sizing:border-box; display:block; margin:auto;" frameborder="0"></iframe>
