@@ -53,7 +53,7 @@ def perpendicular_vector(v):
 def add_teardrop_lobe(view, x, y, z, color='lightblue', steps=20, include_ligand=True):
     for i in range(1, steps):
         t = i/steps
-        cx, cy, cz = t * x, t * y, t * z
+        cx, cy, cz = t*x, t*y, t*z
         r = teardrop_radius_modified(t, A=0.8, t0=0.8)
         view.addSphere({
             'center': {'x': cx, 'y': cy, 'z': cz},
@@ -71,8 +71,8 @@ def add_teardrop_lobe(view, x, y, z, color='lightblue', steps=20, include_ligand
         })
     else:
         t_electron = 0.5
-        ex, ey, ez = t_electron * x, t_electron * y, t_electron * z
-        p = perpendicular_vector((x, y, z))
+        ex, ey, ez = t_electron*x, t_electron*y, t_electron*z
+        p = perpendicular_vector((x,y,z))
         offset = 0.1
         sphere1_center = (ex + offset*p[0], ey + offset*p[1], ez + offset*p[2])
         sphere2_center = (ex - offset*p[0], ey - offset*p[1], ez - offset*p[2])
@@ -150,7 +150,7 @@ def add_angle_labels(view, domains):
                 add_arc_between(view, domains[i]['pos'], domains[j]['pos'], segments=30, allow_180_label=allow_180)
 
 def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
-    # 當 4 電子域時，不論原始設定如何，都以理想正四面體座標排列（保留原 type）
+    # 當 4 電子域時，無論原始設定如何，都以理想正四面體座標排列，保留原 type
     if len(domains) == 4:
         R = 2.5
         s = R / math.sqrt(3)
@@ -160,7 +160,7 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
             {"pos": (-s,  s, -s), "type": domains[2]["type"]},
             {"pos": (-s, -s,  s), "type": domains[3]["type"]}
         ]
-    view = py3Dmol.view(width=600, height=600)
+    view = py3Dmol.view(width=350, height=350)  # 調整尺寸以適合手機瀏覽
     add_axes(view, axis_length=3.0)
     view.addSphere({
         'center': {'x': 0, 'y': 0, 'z': 0},
@@ -180,7 +180,6 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
     if show_angle_labels and all(d['type'] == 'bond' for d in domains):
         add_angle_labels(view, domains)
     
-    # 4 電子域已覆寫為理想正四面體，不作額外旋轉；其他情形依原邏輯
     ed_count = len(domains)
     if ed_count == 2:
         view.rotate(90, 'y')
@@ -202,9 +201,32 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
     return view._make_html()
 
 # -------------------------------
-# VSEPR 模型定義（這裡以 4 電子域為例，其他模型可自行補充）
+# VSEPR 模型定義（2～6 電子域）
 # -------------------------------
 vsepr_geometries = {
+    "2_0": {
+        "shape_name": "2 電子域, 0 LP: Linear (直線)",
+        "domains": [
+            {"pos": (0, 0, 2.5), "type": "bond"},
+            {"pos": (0, 0, -2.5), "type": "bond"}
+        ]
+    },
+    "3_0": {
+        "shape_name": "3 電子域, 0 LP: Trigonal Planar (平面三角)",
+        "domains": [
+            {"pos": (2.5, 0, 0), "type": "bond"},
+            {"pos": (-1.25, 2.165, 0), "type": "bond"},
+            {"pos": (-1.25, -2.165, 0), "type": "bond"}
+        ]
+    },
+    "3_1": {
+        "shape_name": "3 電子域, 1 LP: Bent (角形)",
+        "domains": [
+            {"pos": (2.5, 0, 0), "type": "bond"},
+            {"pos": (-1.25, 2.165, 0), "type": "bond"},
+            {"pos": (-1.25, -2.165, 0), "type": "lp"}
+        ]
+    },
     "4_0": {
         "shape_name": "4 電子域, 0 LP: Tetrahedral (四面體)",
         "domains": [
@@ -231,6 +253,101 @@ vsepr_geometries = {
             {"pos": (-1.1785, -2.0413, -0.8333), "type": "bond"},
             {"pos": (0, 0, 2.5), "type": "bond"}
         ]
+    },
+    "5_0": {
+        "shape_name": "5 電子域, 0 LP: Trigonal Bipyramidal (三角雙錐)",
+        "domains": [
+            {"pos": (0, 0, 2.5), "type": "bond"},
+            {"pos": (0, 0, -2.5), "type": "bond"},
+            {"pos": (2.5, 0, 0), "type": "bond"},
+            {"pos": (-1.25, 2.165, 0), "type": "bond"},
+            {"pos": (-1.25, -2.165, 0), "type": "bond"}
+        ]
+    },
+    "5_1": {
+        "shape_name": "5 電子域, 1 LP: 蹺蹺板形",
+        "domains": [
+            {"pos": (0, 0, 2.5), "type": "bond"},
+            {"pos": (0, 0, -2.5), "type": "bond"},
+            {"pos": (2.5, 0, 0), "type": "bond"},
+            {"pos": (-1.25, 2.165, 0), "type": "bond"},
+            {"pos": (-1.25, -2.165, 0), "type": "lp"}
+        ]
+    },
+    "5_2": {
+        "shape_name": "5 電子域, 2 LP: T-shaped (T形)",
+        "domains": [
+            {"pos": (0, 0, 2.5), "type": "bond"},
+            {"pos": (0, 0, -2.5), "type": "bond"},
+            {"pos": (2.5, 0, 0), "type": "bond"},
+            {"pos": (-1.25, 2.165, 0), "type": "lp"},
+            {"pos": (-1.25, -2.165, 0), "type": "lp"}
+        ]
+    },
+    "5_3": {
+        "shape_name": "5 電子域, 3 LP: Linear (直線)",
+        "domains": [
+            {"pos": (0, 0, 2.5), "type": "bond"},
+            {"pos": (0, 0, -2.5), "type": "bond"},
+            {"pos": (2.5, 0, 0), "type": "lp"},
+            {"pos": (-1.25, 2.165, 0), "type": "lp"},
+            {"pos": (-1.25, -2.165, 0), "type": "lp"}
+        ]
+    },
+    "6_0": {
+        "shape_name": "6 電子域, 0 LP: Octahedral (八面體)",
+        "domains": [
+            {"pos": (0, 0, 2.5), "type": "bond"},
+            {"pos": (0, 0, -2.5), "type": "bond"},
+            {"pos": (2.5, 0, 0), "type": "bond"},
+            {"pos": (-2.5, 0, 0), "type": "bond"},
+            {"pos": (0, 2.5, 0), "type": "bond"},
+            {"pos": (0, -2.5, 0), "type": "bond"}
+        ]
+    },
+    "6_1": {
+        "shape_name": "6 電子域, 1 LP: Square Pyramidal (四角錐)",
+        "domains": [
+            {"pos": (0, 0, 2.5), "type": "lp"},
+            {"pos": (0, 0, -2.5), "type": "bond"},
+            {"pos": (2.5, 0, 0), "type": "bond"},
+            {"pos": (-2.5, 0, 0), "type": "bond"},
+            {"pos": (0, 2.5, 0), "type": "bond"},
+            {"pos": (0, -2.5, 0), "type": "bond"}
+        ]
+    },
+    "6_2": {
+        "shape_name": "6 電子域, 2 LP: Square Planar (平面四方)",
+        "domains": [
+            {"pos": (0, 0, 2.5), "type": "lp"},
+            {"pos": (0, 0, -2.5), "type": "lp"},
+            {"pos": (2.5, 0, 0), "type": "bond"},
+            {"pos": (-2.5, 0, 0), "type": "bond"},
+            {"pos": (0, 2.5, 0), "type": "bond"},
+            {"pos": (0, -2.5, 0), "type": "bond"}
+        ]
+    },
+    "6_3": {
+        "shape_name": "6 電子域, 3 LP: T-shaped (T形)",
+        "domains": [
+            {"pos": (0, 0, 2.5), "type": "lp"},
+            {"pos": (0, 0, -2.5), "type": "lp"},
+            {"pos": (2.5, 0, 0), "type": "lp"},
+            {"pos": (-2.5, 0, 0), "type": "bond"},
+            {"pos": (0, 2.5, 0), "type": "bond"},
+            {"pos": (0, -2.5, 0), "type": "bond"}
+        ]
+    },
+    "6_4": {
+        "shape_name": "6 電子域, 4 LP: Linear (直線)",
+        "domains": [
+            {"pos": (0, 0, 2.5), "type": "lp"},
+            {"pos": (0, 0, -2.5), "type": "lp"},
+            {"pos": (2.5, 0, 0), "type": "lp"},
+            {"pos": (-2.5, 0, 0), "type": "lp"},
+            {"pos": (0, 2.5, 0), "type": "bond"},
+            {"pos": (0, -2.5, 0), "type": "bond"}
+        ]
     }
 }
 
@@ -238,25 +355,13 @@ vsepr_geometries = {
 # Streamlit 主程式（不使用側邊欄）
 # -------------------------------
 st.title("VSEPR 模型互動視圖")
-
-# 主頁面上直接選擇模型
 selected_key = st.selectbox("選擇模型", sorted(vsepr_geometries.keys()))
 data = vsepr_geometries[selected_key]
-
-# 根據模型是否全為鍵結對決定是否顯示夾角
 if all(d['type'] == 'bond' for d in data["domains"]):
     show_angles = st.checkbox("顯示夾角標示", value=True)
 else:
     show_angles = False
-
-# 產生互動視圖的 HTML 字串
 html_str = show_vsepr_teardrop(data["domains"], data["shape_name"], show_angle_labels=show_angles)
-
-# 顯示模型標題
 st.header(data["shape_name"])
-
-# 將互動視圖包在帶邊框的 div 中，方便手機瀏覽
-html_str_wrapped = f"<div style='border:2px solid #000; margin:10px; padding:5px;'>{html_str}</div>"
-
-# 嵌入 py3Dmol 的 HTML 互動視圖
-st.components.v1.html(html_str_wrapped, width=800, height=800)
+html_str_wrapped = f"<div style='border:2px solid #000; margin:10px; padding:5px; max-width:100%;'>{html_str}</div>"
+st.components.v1.html(html_str_wrapped, width=350, height=350)
