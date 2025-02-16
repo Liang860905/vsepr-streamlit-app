@@ -2,6 +2,18 @@ import streamlit as st
 import py3Dmol
 import math
 
+# 自訂 CSS：讓 radio 按鈕水平排列
+st.markdown(
+    """
+    <style>
+    div[data-baseweb="radio"] > div {
+      flex-direction: row;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 # -------------------------------
 # 基本工具與函式定義
 # -------------------------------
@@ -14,7 +26,7 @@ def dot_product(v1, v2):
 def normalize(v):
     n = norm(v)
     if n == 0:
-        return (0, 0, 0)
+        return (0,0,0)
     return (v[0]/n, v[1]/n, v[2]/n)
 
 def add_axes(view, axis_length=3.0):
@@ -44,7 +56,7 @@ def teardrop_radius_modified(t, A=0.8, t0=0.8):
 def perpendicular_vector(v):
     vx, vy, vz = v
     if abs(vx) < 1e-6 and abs(vy) < 1e-6:
-        return (1, 0, 0)
+        return (1,0,0)
     else:
         perp = (-vy, vx, 0)
         n_val = norm(perp)
@@ -363,5 +375,5 @@ else:
     show_angles = False
 html_str = show_vsepr_teardrop(data["domains"], data["shape_name"], show_angle_labels=show_angles)
 st.header(data["shape_name"])
-html_str_wrapped = f"<div style='border:2px solid #000; margin:10px; padding:5px; max-width:100%; box-sizing:border-box;'>{html_str}</div>"
+html_str_wrapped = f"<div style='border:2px solid #000; margin:10px; padding:5px; max-width:350px; box-sizing:border-box;'>{html_str}</div>"
 st.components.v1.html(html_str_wrapped, width=350, height=350)
