@@ -24,12 +24,12 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# 將整個頁面內容包裹在一個置中的 div 裡
+# 將整個頁面內容包在一個置中的 div 裡
 st.markdown("<div class='center-all'>", unsafe_allow_html=True)
 
-# -------------------------------
-# VSEPR 模型工具函式
-# -------------------------------
+#######################################
+# 以下為 VSEPR 模型相關函式（保留原有功能）
+#######################################
 def norm(v):
     return math.sqrt(sum(i * i for i in v))
 
@@ -276,16 +276,12 @@ vsepr_geometries = {
                          {"pos": (0, -2.5, 0), "type": "bond"}]}
 }
 
-# -------------------------------
-# Streamlit 主程式
-# -------------------------------
+##############################################
+# Streamlit 主程式內容（VSEPR 模型與選項）
+##############################################
 st.markdown("<h1 style='text-align: center;'>VSEPR 模型</h1>", unsafe_allow_html=True)
-
-# 選擇電子域數（radio 水平排列）
 domain_counts = sorted({key.split('_')[0] for key in vsepr_geometries.keys()}, key=int)
 selected_count = st.radio("選擇電子域數", domain_counts, horizontal=True)
-
-# 從該電子域數下依 LP 數排序的模型選項（radio 水平排列）
 group_options = sorted([key for key in vsepr_geometries if key.startswith(selected_count)],
                        key=lambda x: int(x.split('_')[1]))
 if not group_options:
@@ -295,70 +291,62 @@ else:
 
 data = vsepr_geometries[selected_key]
 show_angles = st.checkbox("顯示夾角標示", value=True) if all(d['type'] == 'bond' for d in data["domains"]) else False
-
 html_str = show_vsepr_teardrop(data["domains"], data["shape_name"], show_angle_labels=show_angles)
-
-# 模型名稱置中，字體 16px
 st.markdown(f"<p style='font-size:16px; text-align:center;'>{data['shape_name']}</p>", unsafe_allow_html=True)
-
-# 將 3D 模型 HTML 轉成 base64，再嵌入 iframe（外層尺寸 380×380，置中）
 html_base64 = base64.b64encode(html_str.encode('utf-8')).decode('utf-8')
 iframe_html = f"""
 <iframe src="data:text/html;base64,{html_base64}" style="border:2px solid #000; width:380px; height:380px; box-sizing:border-box; display:block; margin:auto;" frameborder="0"></iframe>
 """
 st.markdown(iframe_html, unsafe_allow_html=True)
-
 st.markdown("</div>", unsafe_allow_html=True)
 
-# -------------------------------
-# 加入跳舞兔子 GIF（持續快速移動，每 500 毫秒快移動 2 秒；點擊時暴衝）
-# -------------------------------
+##############################################
+# 加入跳舞兔子 GIF（持續慢速等速移動，點擊時爆衝）
+##############################################
 dino_html = """
 <style>
 #dino {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  left: 50px;
+  top: 50px;
   width: 200px;
   height: auto;
   cursor: pointer;
   z-index: 10000;
-  transition: bottom 0.3s ease, right 0.3s ease;
 }
 </style>
 <div id="dino">
   <img src="https://i.imgur.com/lY0G3B2.jpg" style="width:100%; height:auto;" alt="Dancing Rabbit"/>
 </div>
 <script>
-function getRandomPosition() {
-    var dino = document.getElementById('dino');
-    var maxX = window.innerWidth - dino.offsetWidth;
-    var maxY = window.innerHeight - dino.offsetHeight;
-    var randomX = Math.floor(Math.random() * maxX);
-    var randomY = Math.floor(Math.random() * maxY);
-    return {right: (window.innerWidth - randomX - dino.offsetWidth) + "px", bottom: (window.innerHeight - randomY - dino.offsetHeight) + "px"};
-}
 var dino = document.getElementById('dino');
-var continuousInterval = setInterval(function(){
-    var newPos = getRandomPosition();
-    dino.style.right = newPos.right;
-    dino.style.bottom = newPos.bottom;
-}, 1500);
+var pos = { x: 50, y: 50 };
+var normalSpeed = { vx: 1, vy: 1 };  // 正常速度（像素/幀）
+var burstSpeed = { vx: 10, vy: 10 };  // 點擊時爆衝速度
+var currentSpeed = { vx: normalSpeed.vx, vy: normalSpeed.vy };
+var burstMode = false;
+
+function updatePosition() {
+    pos.x += currentSpeed.vx;
+    pos.y += currentSpeed.vy;
+    // 邊界偵測：反彈效果
+    if (pos.x < 0) { pos.x = 0; currentSpeed.vx = Math.abs(currentSpeed.vx); }
+    if (pos.y < 0) { pos.y = 0; currentSpeed.vy = Math.abs(currentSpeed.vy); }
+    if (pos.x > window.innerWidth - dino.offsetWidth) { pos.x = window.innerWidth - dino.offsetWidth; currentSpeed.vx = -Math.abs(currentSpeed.vx); }
+    if (pos.y > window.innerHeight - dino.offsetHeight) { pos.y = window.innerHeight - dino.offsetHeight; currentSpeed.vy = -Math.abs(currentSpeed.vy); }
+    dino.style.left = pos.x + "px";
+    dino.style.top = pos.y + "px";
+    requestAnimationFrame(updatePosition);
+}
+requestAnimationFrame(updatePosition);
 
 dino.addEventListener('click', function() {
-    clearInterval(continuousInterval);
-    var fastInterval = setInterval(function(){
-         var newPos = getRandomPosition();
-         dino.style.right = newPos.right;
-         dino.style.bottom = newPos.bottom;
-    }, 200);
-    setTimeout(function(){
-         clearInterval(fastInterval);
-         continuousInterval = setInterval(function(){
-             var newPos = getRandomPosition();
-             dino.style.right = newPos.right;
-             dino.style.bottom = newPos.bottom;
-         }, 1500);
+    burstMode = true;
+    currentSpeed = { vx: (Math.random() * burstSpeed.vx + burstSpeed.vx) * (Math.random() < 0.5 ? -1 : 1),
+                     vy: (Math.random() * burstSpeed.vy + burstSpeed.vy) * (Math.random() < 0.5 ? -1 : 1) };
+    setTimeout(function() {
+        burstMode = false;
+        currentSpeed = { vx: normalSpeed.vx, vy: normalSpeed.vy };
     }, 2000);
 });
 </script>
