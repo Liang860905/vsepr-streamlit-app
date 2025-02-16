@@ -28,7 +28,7 @@ st.markdown(
 st.markdown("<div class='center-all'>", unsafe_allow_html=True)
 
 # -------------------------------
-# 工具函式
+# VSEPR 模型工具函式
 # -------------------------------
 def norm(v):
     return math.sqrt(sum(i * i for i in v))
@@ -311,23 +311,23 @@ st.markdown(iframe_html, unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
 
 # -------------------------------
-# 加入跳舞兔子（使用外部 GIF）
+# 加入跳舞兔子 GIF（持續快速移動，每 500 毫秒隨機移動）
 # -------------------------------
 dino_html = """
 <style>
 #dino {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 120px;
+  bottom: 10px;
+  right: 10px;
+  width: 200px;
   height: auto;
   cursor: pointer;
   z-index: 10000;
-  transition: bottom 0.5s ease, right 0.5s ease;
+  transition: bottom 0.3s ease, right 0.3s ease;
 }
 </style>
 <div id="dino">
-  <img src="https://memeprod.ap-south-1.linodeobjects.com/user-maker/6480bb3f2cbc1de017cc46f9fa1b5951.gif" style="width:100%; height:auto;" alt="Dancing Rabbit">
+  <img src="https://i.imgur.com/lY0G3B2.jpg" style="width:100%; height:auto;" alt="Dancing Rabbit"/>
 </div>
 <script>
 function getRandomPosition() {
@@ -342,11 +342,13 @@ var dino = document.getElementById('dino');
 var pos = getRandomPosition();
 dino.style.right = pos.right;
 dino.style.bottom = pos.bottom;
+// 每 500 毫秒自動移動
 setInterval(function(){
     var newPos = getRandomPosition();
     dino.style.right = newPos.right;
     dino.style.bottom = newPos.bottom;
-}, 2000);
+}, 500);
+// 點擊時也移動
 dino.addEventListener('click', function() {
     var newPos = getRandomPosition();
     dino.style.right = newPos.right;
