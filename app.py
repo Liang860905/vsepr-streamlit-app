@@ -23,11 +23,11 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# 將整個頁面內容包在一個置中的 div 裡
+# 將整個頁面內容包裹在一個置中的 div 中
 st.markdown("<div class='center-all'>", unsafe_allow_html=True)
 
 # -------------------------------
-# 工具函式
+# VSEPR 模型功能與相關工具函式（略，保留你原有的程式碼）
 # -------------------------------
 def norm(v):
     return math.sqrt(sum(i * i for i in v))
@@ -311,7 +311,7 @@ st.markdown(iframe_html, unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
 
 # -------------------------------
-# 加入像素風 Chrome 離線恐龍（dino）
+# 加入像素風小恐龍（使用內建 Emoji 🦖 取代圖片）
 # -------------------------------
 st.markdown(
     """
@@ -320,34 +320,32 @@ st.markdown(
       position: fixed;
       top: 10%;
       left: 10%;
-      width: 80px;
-      height: auto;
+      font-size: 80px;
       cursor: pointer;
       z-index: 10000;
-      image-rendering: pixelated;
       transition: top 0.5s ease, left 0.5s ease;
     }
     </style>
-    <img id="dino" src="https://www.gstatic.com/chrome/dino/dino.png" alt="Pixel Dino">
+    <div id="dino">🦖</div>
     <script>
-    function getRandomPosition() {
-        var dino = document.getElementById('dino');
-        var maxX = window.innerWidth - dino.clientWidth;
-        var maxY = window.innerHeight - dino.clientHeight;
-        var randomX = Math.floor(Math.random() * maxX);
-        var randomY = Math.floor(Math.random() * maxY);
-        return {x: randomX, y: randomY};
-    }
-    var dino = document.getElementById('dino');
-    // 初始隨機位置
-    var pos = getRandomPosition();
-    dino.style.left = pos.x + "px";
-    dino.style.top = pos.y + "px";
-    dino.addEventListener('click', function() {
-        var newPos = getRandomPosition();
-        dino.style.left = newPos.x + "px";
-        dino.style.top = newPos.y + "px";
-    });
+      function getRandomPosition() {
+          var dino = document.getElementById('dino');
+          var maxX = window.innerWidth - dino.offsetWidth;
+          var maxY = window.innerHeight - dino.offsetHeight;
+          var randomX = Math.floor(Math.random() * maxX);
+          var randomY = Math.floor(Math.random() * maxY);
+          return {x: randomX, y: randomY};
+      }
+      const dino = document.getElementById('dino');
+      // 設定初始隨機位置
+      var pos = getRandomPosition();
+      dino.style.left = pos.x + "px";
+      dino.style.top = pos.y + "px";
+      dino.addEventListener('click', function() {
+          var newPos = getRandomPosition();
+          dino.style.left = newPos.x + "px";
+          dino.style.top = newPos.y + "px";
+      });
     </script>
     """,
     unsafe_allow_html=True
