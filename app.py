@@ -8,6 +8,7 @@ st.markdown(
     <style>
     div[data-baseweb="radio"] > div {
       flex-direction: row;
+      flex-wrap: wrap;
     }
     </style>
     """,
@@ -56,7 +57,7 @@ def teardrop_radius_modified(t, A=0.8, t0=0.8):
 def perpendicular_vector(v):
     vx, vy, vz = v
     if abs(vx) < 1e-6 and abs(vy) < 1e-6:
-        return (1,0,0)
+        return (1, 0, 0)
     else:
         perp = (-vy, vx, 0)
         n_val = norm(perp)
@@ -367,13 +368,23 @@ vsepr_geometries = {
 # Streamlit 主程式（不使用側邊欄）
 # -------------------------------
 st.title("VSEPR 模型互動視圖")
-selected_key = st.radio("選擇模型", sorted(vsepr_geometries.keys()))
+
+# 先選擇電子域數
+domain_counts = sorted({ key.split('_')[0] for key in vsepr_geometries.keys() }, key=int)
+selected_count = st.radio("選擇電子域數", domain_counts)
+
+# 從所有模型中篩選出該電子域數的模型
+group_options = [key for key in sorted(vsepr_geometries.keys()) if key.startswith(selected_count)]
+selected_key = st.radio("選擇模型", group_options)
+
 data = vsepr_geometries[selected_key]
 if all(d['type'] == 'bond' for d in data["domains"]):
     show_angles = st.checkbox("顯示夾角標示", value=True)
 else:
     show_angles = False
+
 html_str = show_vsepr_teardrop(data["domains"], data["shape_name"], show_angle_labels=show_angles)
 st.header(data["shape_name"])
 html_str_wrapped = f"<div style='border:2px solid #000; margin:10px; padding:5px; max-width:350px; box-sizing:border-box;'>{html_str}</div>"
 st.components.v1.html(html_str_wrapped, width=350, height=350)
+
