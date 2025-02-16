@@ -2,13 +2,24 @@ import streamlit as st
 import py3Dmol
 import math
 
-# 自訂 CSS：讓 radio 按鈕水平排列（若超過一行則自動換行）
+# 自訂 CSS：讓 radio 按鈕水平排列，並讓外層容器正確顯示邊框
 st.markdown(
     """
     <style>
     div[data-baseweb="radio"] > div {
       flex-direction: row;
       flex-wrap: wrap;
+    }
+    /* 外層容器 */
+    .container-border {
+      border: 2px solid #000;
+      margin: 10px;
+      padding: 20px;
+      width: 380px;
+      height: 380px;
+      box-sizing: border-box;
+      overflow: visible;
+      position: relative;
     }
     </style>
     """,
@@ -57,7 +68,7 @@ def teardrop_radius_modified(t, A=0.8, t0=0.8):
 def perpendicular_vector(v):
     vx, vy, vz = v
     if abs(vx) < 1e-6 and abs(vy) < 1e-6:
-        return (1, 0, 0)
+        return (1,0,0)
     else:
         perp = (-vy, vx, 0)
         n_val = norm(perp)
@@ -103,7 +114,7 @@ def add_arc_between(view, v1, v2, segments=20, allow_180_label=False):
     u2 = normalize(v2)
     r1 = norm(v1)
     r2 = norm(v2)
-    r = ((r1 + r2) / 2.0) * 1.1
+    r = ((r1 + r2)/2.0)*1.1
     dp = dot_product(u1, u2)
     if abs(dp + 1.0) < 1e-6:
         angle = math.pi
@@ -114,12 +125,12 @@ def add_arc_between(view, v1, v2, segments=20, allow_180_label=False):
         temp = (u2[0] - dp*u1[0], u2[1] - dp*u1[1], u2[2] - dp*u1[2])
         n_vec = normalize(temp)
     arc_points = []
-    for i in range(segments + 1):
-        phi = (i/segments) * angle
+    for i in range(segments+1):
+        phi = (i/segments)*angle
         point = (
-            r * (u1[0]*math.cos(phi) + n_vec[0]*math.sin(phi)),
-            r * (u1[1]*math.cos(phi) + n_vec[1]*math.sin(phi)),
-            r * (u1[2]*math.cos(phi) + n_vec[2]*math.sin(phi))
+            r*(u1[0]*math.cos(phi) + n_vec[0]*math.sin(phi)),
+            r*(u1[1]*math.cos(phi) + n_vec[1]*math.sin(phi)),
+            r*(u1[2]*math.cos(phi) + n_vec[2]*math.sin(phi))
         )
         arc_points.append(point)
     for i in range(len(arc_points)-1):
@@ -134,17 +145,17 @@ def add_arc_between(view, v1, v2, segments=20, allow_180_label=False):
         })
     mid_phi = angle/2.0
     mid_point = (
-        r * (u1[0]*math.cos(mid_phi) + n_vec[0]*math.sin(mid_phi)),
-        r * (u1[1]*math.cos(mid_phi) + n_vec[1]*math.sin(mid_phi)),
-        r * (u1[2]*math.cos(mid_phi) + n_vec[2]*math.sin(mid_phi))
+        r*(u1[0]*math.cos(mid_phi) + n_vec[0]*math.sin(mid_phi)),
+        r*(u1[1]*math.cos(mid_phi) + n_vec[1]*math.sin(mid_phi)),
+        r*(u1[2]*math.cos(mid_phi) + n_vec[2]*math.sin(mid_phi))
     )
     angle_deg = math.degrees(angle)
     if not (abs(angle - math.pi) < 1e-6 and not allow_180_label):
         offset_vec = perpendicular_vector(mid_point)
         label_pos = (
-            mid_point[0] + 0.15 * offset_vec[0],
-            mid_point[1] + 0.15 * offset_vec[1],
-            mid_point[2] + 0.15 * offset_vec[2]
+            mid_point[0] + 0.15*offset_vec[0],
+            mid_point[1] + 0.15*offset_vec[1],
+            mid_point[2] + 0.15*offset_vec[2]
         )
         view.addLabel(f"{angle_deg:.1f}°", {
             'position': {'x': label_pos[0], 'y': label_pos[1], 'z': label_pos[2]},
@@ -163,7 +174,7 @@ def add_angle_labels(view, domains):
                 add_arc_between(view, domains[i]['pos'], domains[j]['pos'], segments=30, allow_180_label=allow_180)
 
 def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
-    # 若為4電子域，不論原始設定如何，都以理想正四面體座標排列（保留原 type）
+    # 若為 4 電子域，不論原始設定如何，都以理想正四面體座標排列（保留原 type）
     if len(domains) == 4:
         R = 2.5
         s = R / math.sqrt(3)
@@ -173,17 +184,14 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
             {"pos": (-s,  s, -s), "type": domains[2]["type"]},
             {"pos": (-s, -s,  s), "type": domains[3]["type"]}
         ]
-    # 建立 3D 視圖，尺寸設為 300×300
     view = py3Dmol.view(width=300, height=300)
     add_axes(view, axis_length=3.0)
-    # 中心原子
     view.addSphere({
         'center': {'x': 0, 'y': 0, 'z': 0},
         'radius': 0.5,
         'color': 'black',
         'opacity': 1.0
     })
-    # 繪製各電子域
     for d in domains:
         (x, y, z) = d['pos']
         if d['type'] == 'bond':
@@ -214,7 +222,6 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
         view.rotate(-90, 'x')
     
     view.zoomTo()
-    # 取得 HTML 並將背景色替換成透明，避免白底遮蓋邊框
     html_str = view._make_html()
     html_str = html_str.replace("background-color: white;", "background-color: transparent;")
     return html_str
@@ -395,7 +402,7 @@ else:
 html_str = show_vsepr_teardrop(data["domains"], data["shape_name"], show_angle_labels=show_angles)
 st.header(data["shape_name"])
 
-# 外層容器：固定 380×380，padding=20，確保左右下方邊框不被覆蓋
-html_str_wrapped = f"<div style='border:2px solid #000; margin:10px; padding:20px; width:380px; height:380px; box-sizing:border-box;'>{html_str}</div>"
-
+# 外層容器：380×380，padding=20，確保左右與下方邊框顯示
+html_str_wrapped = f"<div class='container-border'>{html_str}</div>"
 st.components.v1.html(html_str_wrapped, width=380, height=380)
+
