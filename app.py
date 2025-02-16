@@ -3,18 +3,26 @@ import py3Dmol
 import math
 import base64
 
-# 自訂 CSS：強制 radio 按鈕水平排列
+# 自訂 CSS：讓 radio 按鈕水平排列（多行自動換行）
 st.markdown(
     """
     <style>
     div[data-baseweb="radio"] > div {
       flex-direction: row;
       flex-wrap: wrap;
+      justify-content: center;
+    }
+    /* 可嘗試將整個頁面內容置中 */
+    .center-all {
+      text-align: center;
     }
     </style>
     """,
     unsafe_allow_html=True,
 )
+
+# 將整個頁面內容包在一個置中的 div 裡
+st.markdown("<div class='center-all'>", unsafe_allow_html=True)
 
 # -------------------------------
 # 工具函式
@@ -30,21 +38,20 @@ def normalize(v):
     return tuple(i/n for i in v) if n else (0,0,0)
 
 def add_axes(view, axis_length=3.0):
-    for (sx, sy, sz, ex, ey, ez), color in zip(
-        [(-axis_length, 0, 0, axis_length, 0, 0),
-         (0, -axis_length, 0, 0, axis_length, 0),
-         (0, 0, -axis_length, 0, 0, axis_length)],
-        ['red', 'green', 'blue']):
-        view.addCylinder({'start': {'x': sx, 'y': sy, 'z': sz},
-                          'end': {'x': ex, 'y': ey, 'z': ez},
-                          'radius': 0.05, 'color': color})
+    colors = ['red', 'green', 'blue']
+    starts = [(-axis_length, 0, 0), (0, -axis_length, 0), (0, 0, -axis_length)]
+    ends   = [(axis_length, 0, 0), (0, axis_length, 0), (0, 0, axis_length)]
+    for s, e, c in zip(starts, ends, colors):
+        view.addCylinder({'start': {'x': s[0], 'y': s[1], 'z': s[2]},
+                          'end': {'x': e[0], 'y': e[1], 'z': e[2]},
+                          'radius': 0.05, 'color': c})
 
 def teardrop_radius_modified(t, A=0.8, t0=0.8):
-    return A * math.sin(math.pi*t/(2*t0)) if t<=t0 else A*(1-t)/(1-t0)
+    return A * math.sin(math.pi * t / (2*t0)) if t<=t0 else A * (1-t) / (1-t0)
 
 def perpendicular_vector(v):
     vx, vy, vz = v
-    if abs(vx) < 1e-6 and abs(vy) < 1e-6:
+    if abs(vx)<1e-6 and abs(vy)<1e-6:
         return (1,0,0)
     perp = (-vy, vx, 0)
     n = norm(perp)
@@ -74,7 +81,7 @@ def add_arc_between(view, v1, v2, segments=20, allow_180_label=False):
     u1, u2 = normalize(v1), normalize(v2)
     r = (((norm(v1)+norm(v2))/2.0)*1.1)
     dp = dot_product(u1, u2)
-    if abs(dp+1.0) < 1e-6:
+    if abs(dp+1.0)<1e-6:
         angle, n_vec = math.pi, perpendicular_vector(u1)
     else:
         angle = math.acos(max(-1.0, min(1.0, dp)))
@@ -98,9 +105,11 @@ def add_arc_between(view, v1, v2, segments=20, allow_180_label=False):
         label_pos = (mid_point[0]+0.15*offset_vec[0],
                      mid_point[1]+0.15*offset_vec[1],
                      mid_point[2]+0.15*offset_vec[2])
-        view.addLabel(f"{math.degrees(angle):.1f}°", {'position': {'x': label_pos[0], 'y': label_pos[1], 'z': label_pos[2]},
-                                                      'fontColor': 'black', 'backgroundColor': 'transparent',
-                                                      'fontSize': 14, 'showBackground': False})
+        view.addLabel(f"{math.degrees(angle):.1f}°", {
+            'position': {'x': label_pos[0], 'y': label_pos[1], 'z': label_pos[2]},
+            'fontColor': 'black', 'backgroundColor': 'transparent',
+            'fontSize': 14, 'showBackground': False
+        })
 
 def add_angle_labels(view, domains):
     for i in range(len(domains)):
@@ -110,7 +119,6 @@ def add_angle_labels(view, domains):
                                 allow_180_label=(len(domains)==2))
 
 def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
-    # 4電子域改為理想正四面體
     if len(domains)==4:
         R = 2.5; s = R/math.sqrt(3)
         domains = [{"pos": ( s,  s,  s), "type": domains[0]["type"]},
@@ -119,7 +127,8 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
                    {"pos": (-s, -s,  s), "type": domains[3]["type"]}]
     view = py3Dmol.view(width=360, height=360)
     add_axes(view, axis_length=3.0)
-    view.addSphere({'center': {'x': 0, 'y': 0, 'z': 0}, 'radius': 0.5, 'color':'black','opacity':1.0})
+    view.addSphere({'center': {'x': 0, 'y': 0, 'z': 0},
+                    'radius': 0.5, 'color':'black','opacity':1.0})
     for d in domains:
         x,y,z = d['pos']
         col = 'lightblue' if d['type']=='bond' else 'pink'
@@ -127,11 +136,13 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
         add_teardrop_lobe(view, x, y, z, color=col, steps=20, include_ligand=inc)
     if show_angle_labels and all(d['type']=='bond' for d in domains):
         add_angle_labels(view, domains)
-    if len(domains)==2:
+    
+    ed_count = len(domains)
+    if ed_count==2:
         view.rotate(90, 'y')
-    elif len(domains)==3:
+    elif ed_count==3:
         view.rotate(90, 'z')
-    elif len(domains)==6:
+    elif ed_count==6:
         if any(keyword in shape_name for keyword in ["平面四方", "T-shaped", "T形"]):
             pass
         elif any(keyword in shape_name for keyword in ["直線"]):
@@ -140,6 +151,7 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
             view.rotate(90, 'x')
     else:
         view.rotate(-90, 'x')
+    
     view.zoomTo()
     html_str = view._make_html().replace("background-color: white;", "background-color: transparent;")
     return html_str
@@ -234,13 +246,16 @@ vsepr_geometries = {
                          {"pos": (0,-2.5,0), "type": "bond"}]}
 }
 
-st.title("VSEPR 模型")
+# -------------------------------
+# Streamlit 主程式
+# -------------------------------
+st.markdown("<h1 style='text-align: center;'>VSEPR 模型</h1>", unsafe_allow_html=True)
 
 # 選擇電子域數（radio 水平排列）
 domain_counts = sorted({ key.split('_')[0] for key in vsepr_geometries.keys() }, key=int)
 selected_count = st.radio("選擇電子域數", domain_counts, horizontal=True)
 
-# 從該電子域數下依 LP 數排序的模型選項（水平排列）
+# 從該電子域數下依 LP 數排序的模型選項（radio 水平排列）
 group_options = sorted([key for key in vsepr_geometries if key.startswith(selected_count)],
                        key=lambda x: int(x.split('_')[1]))
 if not group_options:
@@ -256,9 +271,11 @@ html_str = show_vsepr_teardrop(data["domains"], data["shape_name"], show_angle_l
 # 模型名稱置中，字體大小 16px
 st.markdown(f"<p style='font-size:16px; text-align:center;'>{data['shape_name']}</p>", unsafe_allow_html=True)
 
-# 將 3D 模型 HTML 編碼後以 iframe 嵌入，外層尺寸 380×380，置中
+# 將 3D 模型 HTML 轉成 base64，再嵌入 iframe（外層 380×380，置中）
 html_base64 = base64.b64encode(html_str.encode('utf-8')).decode('utf-8')
 iframe_html = f"""
 <iframe src="data:text/html;base64,{html_base64}" style="border:2px solid #000; width:380px; height:380px; box-sizing:border-box; display:block; margin:auto;" frameborder="0"></iframe>
 """
 st.markdown(iframe_html, unsafe_allow_html=True)
+
+st.markdown("</div>", unsafe_allow_html=True)
