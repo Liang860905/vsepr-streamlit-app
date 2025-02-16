@@ -24,7 +24,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# 將整個頁面內容包在一個置中的 div 裡
+# 將整個頁面內容包在一個置中的 div 中
 st.markdown("<div class='center-all'>", unsafe_allow_html=True)
 
 # -------------------------------
@@ -311,21 +311,24 @@ st.markdown(iframe_html, unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
 
 # -------------------------------
-# 加入像素風 Chrome 離線恐龍（使用內建 Emoji 🦖）
+# 加入跳舞兔子（使用外部 GIF）
 # -------------------------------
 dino_html = """
 <style>
 #dino {
   position: fixed;
-  top: 10%;
-  left: 10%;
-  font-size: 80px;
+  bottom: 20px;
+  right: 20px;
+  width: 120px;
+  height: auto;
   cursor: pointer;
   z-index: 10000;
-  transition: top 0.5s ease, left 0.5s ease;
+  transition: bottom 0.5s ease, right 0.5s ease;
 }
 </style>
-<div id="dino">🦖</div>
+<div id="dino">
+  <img src="https://memeprod.ap-south-1.linodeobjects.com/user-maker/6480bb3f2cbc1de017cc46f9fa1b5951.gif" style="width:100%; height:auto;" alt="Dancing Rabbit">
+</div>
 <script>
 function getRandomPosition() {
     var dino = document.getElementById('dino');
@@ -333,23 +336,22 @@ function getRandomPosition() {
     var maxY = window.innerHeight - dino.offsetHeight;
     var randomX = Math.floor(Math.random() * maxX);
     var randomY = Math.floor(Math.random() * maxY);
-    return {x: randomX, y: randomY};
+    return {right: (window.innerWidth - randomX - dino.offsetWidth) + "px", bottom: (window.innerHeight - randomY - dino.offsetHeight) + "px"};
 }
 var dino = document.getElementById('dino');
 var pos = getRandomPosition();
-dino.style.left = pos.x + "px";
-dino.style.top = pos.y + "px";
+dino.style.right = pos.right;
+dino.style.bottom = pos.bottom;
 setInterval(function(){
     var newPos = getRandomPosition();
-    dino.style.left = newPos.x + "px";
-    dino.style.top = newPos.y + "px";
+    dino.style.right = newPos.right;
+    dino.style.bottom = newPos.bottom;
 }, 2000);
 dino.addEventListener('click', function() {
     var newPos = getRandomPosition();
-    dino.style.left = newPos.x + "px";
-    dino.style.top = newPos.y + "px";
+    dino.style.right = newPos.right;
+    dino.style.bottom = newPos.bottom;
 });
 </script>
 """
-# 用 components.html 嵌入完整的 HTML+JS 讓 dino 生效
 components.html(dino_html, height=300)
