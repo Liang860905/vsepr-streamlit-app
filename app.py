@@ -27,7 +27,7 @@ def dot_product(v1, v2):
 def normalize(v):
     n = norm(v)
     if n == 0:
-        return (0, 0, 0)
+        return (0,0,0)
     return (v[0]/n, v[1]/n, v[2]/n)
 
 def add_axes(view, axis_length=3.0):
@@ -57,7 +57,7 @@ def teardrop_radius_modified(t, A=0.8, t0=0.8):
 def perpendicular_vector(v):
     vx, vy, vz = v
     if abs(vx) < 1e-6 and abs(vy) < 1e-6:
-        return (1, 0, 0)
+        return (1,0,0)
     else:
         perp = (-vy, vx, 0)
         n_val = norm(perp)
@@ -163,7 +163,7 @@ def add_angle_labels(view, domains):
                 add_arc_between(view, domains[i]['pos'], domains[j]['pos'], segments=30, allow_180_label=allow_180)
 
 def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
-    # 當 4 電子域時，不論原始設定如何，都以理想正四面體座標排列（保留原 type）
+    # 當 4 電子域時，無論原始設定如何，都以理想正四面體座標排列（保留原 type）
     if len(domains) == 4:
         R = 2.5
         s = R / math.sqrt(3)
@@ -211,7 +211,7 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
         view.rotate(-90, 'x')
     
     view.zoomTo()
-    # 取得 HTML 並替換背景色為透明，避免白色蓋住邊框
+    # 將背景色替換為透明，避免白色背景遮蓋邊框
     html_str = view._make_html()
     html_str = html_str.replace("background-color: white;", "background-color: transparent;")
     return html_str
@@ -372,7 +372,7 @@ vsepr_geometries = {
 # -------------------------------
 st.title("VSEPR 模型互動視圖")
 
-# 先選擇電子域數
+# 先選擇電子域數，radio 水平排列
 domain_counts = sorted({ key.split('_')[0] for key in vsepr_geometries.keys() }, key=int)
 selected_count = st.radio("選擇電子域數", domain_counts, horizontal=True)
 
@@ -388,5 +388,6 @@ else:
 
 html_str = show_vsepr_teardrop(data["domains"], data["shape_name"], show_angle_labels=show_angles)
 st.header(data["shape_name"])
-html_str_wrapped = f"<div style='border:2px solid #000; margin:10px; padding:5px; max-width:350px; box-sizing:border-box;'>{html_str}</div>"
+# 外層容器設置固定寬度和高度，確保邊框完整
+html_str_wrapped = f"<div style='border:2px solid #000; margin:10px; padding:5px; width:350px; height:350px; box-sizing:border-box;'>{html_str}</div>"
 st.components.v1.html(html_str_wrapped, width=350, height=350)
