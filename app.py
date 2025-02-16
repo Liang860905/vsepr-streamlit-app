@@ -3,7 +3,10 @@ import py3Dmol
 import math
 import base64
 
-# 自訂 CSS：讓 radio 按鈕水平排列（多行自動換行）以及全頁置中
+# 設定頁面配置
+st.set_page_config(page_title="VSEPR 模型", layout="centered")
+
+# 自訂 CSS：讓 radio 按鈕水平排列以及所有內容置中
 st.markdown(
     """
     <style>
@@ -14,13 +17,19 @@ st.markdown(
     }
     .center-all {
       text-align: center;
+      margin: auto;
+    }
+    /* 手機版調整字體與邊距 */
+    @media screen and (max-width: 600px) {
+        h1 { font-size: 24px !important; }
+        p { font-size: 14px !important; }
     }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-# 包含所有內容的外層容器
+# 包裹整個頁面內容
 st.markdown("<div class='center-all'>", unsafe_allow_html=True)
 
 # -------------------------------
@@ -34,47 +43,62 @@ def dot_product(v1, v2):
 
 def normalize(v):
     n = norm(v)
-    return tuple(i/n for i in v) if n else (0,0,0)
+    return tuple(i/n for i in v) if n else (0, 0, 0)
 
 def add_axes(view, axis_length=3.0):
     colors = ['red', 'green', 'blue']
     starts = [(-axis_length, 0, 0), (0, -axis_length, 0), (0, 0, -axis_length)]
     ends   = [(axis_length, 0, 0), (0, axis_length, 0), (0, 0, axis_length)]
     for s, e, c in zip(starts, ends, colors):
-        view.addCylinder({'start': {'x': s[0], 'y': s[1], 'z': s[2]},
-                          'end': {'x': e[0], 'y': e[1], 'z': e[2]},
-                          'radius': 0.05, 'color': c})
+        view.addCylinder({
+            'start': {'x': s[0], 'y': s[1], 'z': s[2]},
+            'end':   {'x': e[0], 'y': e[1], 'z': e[2]},
+            'radius': 0.05,
+            'color': c
+        })
 
 def teardrop_radius_modified(t, A=0.8, t0=0.8):
     return A * math.sin(math.pi*t/(2*t0)) if t<=t0 else A*(1-t)/(1-t0)
 
 def perpendicular_vector(v):
     vx, vy, vz = v
-    if abs(vx) < 1e-6 and abs(vy) < 1e-6:
-        return (1,0,0)
+    if abs(vx)<1e-6 and abs(vy)<1e-6:
+        return (1, 0, 0)
     perp = (-vy, vx, 0)
-    n = norm(perp)
-    return tuple(i/n for i in perp)
+    n_val = norm(perp)
+    return tuple(i/n_val for i in perp)
 
 def add_teardrop_lobe(view, x, y, z, color='lightblue', steps=20, include_ligand=True):
     for i in range(1, steps):
         t = i/steps
         cx, cy, cz = t*x, t*y, t*z
         r = teardrop_radius_modified(t)
-        view.addSphere({'center': {'x': cx, 'y': cy, 'z': cz},
-                        'radius': r, 'color': color, 'opacity': 0.6})
+        view.addSphere({
+            'center': {'x': cx, 'y': cy, 'z': cz},
+            'radius': r,
+            'color': color,
+            'opacity': 0.6
+        })
     if include_ligand:
-        view.addSphere({'center': {'x': x, 'y': y, 'z': z},
-                        'radius': 0.5, 'color': color, 'opacity': 0.9})
+        view.addSphere({
+            'center': {'x': x, 'y': y, 'z': z},
+            'radius': 0.5,
+            'color': color,
+            'opacity': 0.9
+        })
     else:
         t_electron = 0.5
         ex, ey, ez = t_electron*x, t_electron*y, t_electron*z
-        p = perpendicular_vector((x,y,z))
+        p = perpendicular_vector((x, y, z))
         offset = 0.1
         for center in [(ex+offset*p[0], ey+offset*p[1], ez+offset*p[2]),
                        (ex-offset*p[0], ey-offset*p[1], ez-offset*p[2])]:
-            view.addSphere({'center': {'x': center[0], 'y': center[1], 'z': center[2]},
-                            'radius': 0.1, 'color': 'black', 'opacity': 1.0})
+            view.addSphere({
+                'center': {'x': center[0], 'y': center[1], 'z': center[2]},
+                'radius': 0.1,
+                'color': 'black',
+                'opacity': 1.0
+            })
 
 def add_arc_between(view, v1, v2, segments=20, allow_180_label=False):
     u1, u2 = normalize(v1), normalize(v2)
@@ -91,9 +115,13 @@ def add_arc_between(view, v1, v2, segments=20, allow_180_label=False):
         r*(u1[2]*math.cos(i/segments*angle) + n_vec[2]*math.sin(i/segments*angle))
     ) for i in range(segments+1)]
     for i in range(len(arc_points)-1):
-        view.addCylinder({'start': {'x': arc_points[i][0], 'y': arc_points[i][1], 'z': arc_points[i][2]},
-                          'end': {'x': arc_points[i+1][0], 'y': arc_points[i+1][1], 'z': arc_points[i+1][2]},
-                          'radius': 0.02, 'color': 'lightgray', 'opacity': 0.5})
+        view.addCylinder({
+            'start': {'x': arc_points[i][0], 'y': arc_points[i][1], 'z': arc_points[i][2]},
+            'end': {'x': arc_points[i+1][0], 'y': arc_points[i+1][1], 'z': arc_points[i+1][2]},
+            'radius': 0.02,
+            'color': 'lightgray',
+            'opacity': 0.5
+        })
     mid_point = (
         r*(u1[0]*math.cos(angle/2) + n_vec[0]*math.sin(angle/2)),
         r*(u1[1]*math.cos(angle/2) + n_vec[1]*math.sin(angle/2)),
@@ -106,8 +134,10 @@ def add_arc_between(view, v1, v2, segments=20, allow_180_label=False):
                      mid_point[2]+0.15*offset_vec[2])
         view.addLabel(f"{math.degrees(angle):.1f}°", {
             'position': {'x': label_pos[0], 'y': label_pos[1], 'z': label_pos[2]},
-            'fontColor': 'black', 'backgroundColor': 'transparent',
-            'fontSize': 14, 'showBackground': False
+            'fontColor': 'black',
+            'backgroundColor': 'transparent',
+            'fontSize': 14,
+            'showBackground': False
         })
 
 def add_angle_labels(view, domains):
@@ -119,7 +149,8 @@ def add_angle_labels(view, domains):
 
 def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
     if len(domains)==4:
-        R = 2.5; s = R/math.sqrt(3)
+        R = 2.5
+        s = R/math.sqrt(3)
         domains = [{"pos": ( s,  s,  s), "type": domains[0]["type"]},
                    {"pos": ( s, -s, -s), "type": domains[1]["type"]},
                    {"pos": (-s,  s, -s), "type": domains[2]["type"]},
@@ -127,7 +158,9 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
     view = py3Dmol.view(width=360, height=360)
     add_axes(view, axis_length=3.0)
     view.addSphere({'center': {'x': 0, 'y': 0, 'z': 0},
-                    'radius': 0.5, 'color': 'black','opacity': 1.0})
+                    'radius': 0.5,
+                    'color':'black',
+                    'opacity': 1.0})
     for d in domains:
         x,y,z = d['pos']
         col = 'lightblue' if d['type']=='bond' else 'pink'
@@ -135,7 +168,6 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
         add_teardrop_lobe(view, x, y, z, color=col, steps=20, include_ligand=inc)
     if show_angle_labels and all(d['type']=='bond' for d in domains):
         add_angle_labels(view, domains)
-    
     if len(domains)==2:
         view.rotate(90, 'y')
     elif len(domains)==3:
@@ -149,7 +181,6 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
             view.rotate(90, 'x')
     else:
         view.rotate(-90, 'x')
-    
     view.zoomTo()
     html_str = view._make_html().replace("background-color: white;", "background-color: transparent;")
     return html_str
@@ -159,7 +190,8 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
 # -------------------------------
 vsepr_geometries = {
     "2_0": {"shape_name": "2 電子域, 0 LP: Linear (直線)",
-             "domains": [{"pos": (0,0,2.5), "type": "bond"}, {"pos": (0,0,-2.5), "type": "bond"}]},
+             "domains": [{"pos": (0,0,2.5), "type": "bond"},
+                         {"pos": (0,0,-2.5), "type": "bond"}]},
     "3_0": {"shape_name": "3 電子域, 0 LP: Trigonal Planar (平面三角)",
              "domains": [{"pos": (2.5,0,0), "type": "bond"},
                          {"pos": (-1.25,2.165,0), "type": "bond"},
@@ -266,10 +298,10 @@ show_angles = st.checkbox("顯示夾角標示", value=True) if all(d['type']=='b
 
 html_str = show_vsepr_teardrop(data["domains"], data["shape_name"], show_angle_labels=show_angles)
 
-# 模型名稱置中，字體大小 16px
+# 模型名稱置中，字體稍大（16px）
 st.markdown(f"<p style='font-size:16px; text-align:center;'>{data['shape_name']}</p>", unsafe_allow_html=True)
 
-# 將 3D 模型 HTML 轉成 base64，再嵌入 iframe（外層尺寸 380×380，置中）
+# 將 3D 模型 HTML 轉成 base64，再嵌入 iframe，外層尺寸 380×380，置中
 html_base64 = base64.b64encode(html_str.encode('utf-8')).decode('utf-8')
 iframe_html = f"""
 <iframe src="data:text/html;base64,{html_base64}" style="border:2px solid #000; width:380px; height:380px; box-sizing:border-box; display:block; margin:auto;" frameborder="0"></iframe>
