@@ -24,7 +24,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# 將整個頁面內容包在一個置中的 div 中
+# 將整個頁面內容包裹在一個置中的 div 裡
 st.markdown("<div class='center-all'>", unsafe_allow_html=True)
 
 # -------------------------------
@@ -311,14 +311,14 @@ st.markdown(iframe_html, unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
 
 # -------------------------------
-# 加入跳舞兔子 GIF（持續快速移動，每 500 毫秒隨機移動）
+# 加入跳舞兔子 GIF（持續快速移動，每 500 毫秒快移動 2 秒；點擊時暴衝）
 # -------------------------------
 dino_html = """
 <style>
 #dino {
   position: fixed;
-  bottom: 10px;
-  right: 10px;
+  bottom: 20px;
+  right: 20px;
   width: 200px;
   height: auto;
   cursor: pointer;
@@ -339,20 +339,27 @@ function getRandomPosition() {
     return {right: (window.innerWidth - randomX - dino.offsetWidth) + "px", bottom: (window.innerHeight - randomY - dino.offsetHeight) + "px"};
 }
 var dino = document.getElementById('dino');
-var pos = getRandomPosition();
-dino.style.right = pos.right;
-dino.style.bottom = pos.bottom;
-// 每 500 毫秒自動移動
-setInterval(function(){
+var continuousInterval = setInterval(function(){
     var newPos = getRandomPosition();
     dino.style.right = newPos.right;
     dino.style.bottom = newPos.bottom;
-}, 500);
-// 點擊時也移動
+}, 1500);
+
 dino.addEventListener('click', function() {
-    var newPos = getRandomPosition();
-    dino.style.right = newPos.right;
-    dino.style.bottom = newPos.bottom;
+    clearInterval(continuousInterval);
+    var fastInterval = setInterval(function(){
+         var newPos = getRandomPosition();
+         dino.style.right = newPos.right;
+         dino.style.bottom = newPos.bottom;
+    }, 200);
+    setTimeout(function(){
+         clearInterval(fastInterval);
+         continuousInterval = setInterval(function(){
+             var newPos = getRandomPosition();
+             dino.style.right = newPos.right;
+             dino.style.bottom = newPos.bottom;
+         }, 1500);
+    }, 2000);
 });
 </script>
 """
