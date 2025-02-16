@@ -23,11 +23,11 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# 將整個頁面內容包裹在一個置中的 div 中
+# 將整個頁面內容包在一個置中的 div 裡
 st.markdown("<div class='center-all'>", unsafe_allow_html=True)
 
 # -------------------------------
-# VSEPR 模型功能與相關工具函式（略，保留你原有的程式碼）
+# 工具函式
 # -------------------------------
 def norm(v):
     return math.sqrt(sum(i * i for i in v))
@@ -143,8 +143,7 @@ def add_angle_labels(view, domains):
 
 def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
     if len(domains) == 4:
-        R = 2.5
-        s = R / math.sqrt(3)
+        R = 2.5; s = R / math.sqrt(3)
         domains = [
             {"pos": (s, s, s), "type": domains[0]["type"]},
             {"pos": (s, -s, -s), "type": domains[1]["type"]},
@@ -311,7 +310,7 @@ st.markdown(iframe_html, unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
 
 # -------------------------------
-# 加入像素風小恐龍（使用內建 Emoji 🦖 取代圖片）
+# 加入像素風小恐龍（使用內建 Emoji 🦖 模擬像素風 dino）
 # -------------------------------
 st.markdown(
     """
@@ -337,10 +336,17 @@ st.markdown(
           return {x: randomX, y: randomY};
       }
       const dino = document.getElementById('dino');
-      // 設定初始隨機位置
+      // 初始隨機位置
       var pos = getRandomPosition();
       dino.style.left = pos.x + "px";
       dino.style.top = pos.y + "px";
+      // 每隔兩秒自動移動
+      setInterval(function(){
+          var newPos = getRandomPosition();
+          dino.style.left = newPos.x + "px";
+          dino.style.top = newPos.y + "px";
+      }, 2000);
+      // 點擊時也移動
       dino.addEventListener('click', function() {
           var newPos = getRandomPosition();
           dino.style.left = newPos.x + "px";
