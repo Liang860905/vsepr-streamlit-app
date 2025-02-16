@@ -39,9 +39,9 @@ def add_axes(view, axis_length=3.0):
 def teardrop_radius_modified(t, A=0.8, t0=0.8):
     """
     計算水滴連接處的半徑：
-      - t∈[0,1]：t=0 與 t=1 時半徑均為 0
-      - t<=t0 時用 A*sin(π*t/(2*t0))
-      - t>t0 時用線性下降 A*(1-t)/(1-t0)
+      - t ∈ [0,1]：t = 0 與 t = 1 時半徑均為 0
+      - t <= t0 時用 A*sin(π*t/(2*t0))
+      - t > t0 時用線性下降 A*(1-t)/(1-t0)
     """
     if t <= t0:
         return A * math.sin(math.pi * t / (2*t0))
@@ -65,8 +65,8 @@ def add_teardrop_lobe(view, x, y, z, color='lightblue', steps=20, include_ligand
     """
     沿著從中心 (0,0,0) 到 (x,y,z) 的方向，畫出水滴連接：
       - 利用多個小球模擬水滴，opacity = 0.6
-      - 若為鍵結對 (include_ligand=True)，在 t=1 處畫出外部原子（半徑0.5）
-      - 若為孤對 (include_ligand=False)，則不畫最邊邊的圓球，而在 t=0.5 處加上兩個小黑點代表電子對
+      - 若為鍵結對 (include_ligand=True)，在 t=1 處畫出外部原子（半徑 0.5）
+      - 若為孤對 (include_ligand=False)，則不畫最外層的球，而在 t=0.5 處加上兩個小黑點代表電子對
     """
     for i in range(1, steps):
         t = i / steps
@@ -106,8 +106,8 @@ def add_arc_between(view, v1, v2, segments=20, allow_180_label=False):
     """
     在從 v1 到 v2 的圓球面上繪製一段圓弧（以小圓柱連接分段點），
     並在圓弧中點旁標示夾角（度數）。
-    若 v1 與 v2 夾角為180°則特殊處理，使圓弧稍向外凸出。
-    只有在 allow_180_label 為 True 或角度非180°時，才加入標籤。
+    若 v1 與 v2 夾角為 180° 則特殊處理，使圓弧稍向外凸出。
+    只有在 allow_180_label 為 True 或角度非 180° 時，才加入標籤。
     """
     u1 = normalize(v1)
     u2 = normalize(v2)
@@ -173,15 +173,15 @@ def add_angle_labels(view, domains):
                 add_arc_between(view, domains[i]['pos'], domains[j]['pos'], segments=30, allow_180_label=allow_180)
 
 def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
-    """
-    繪製 VSEPR 模型：
-      - 中心原子以黑球 (半徑 0.5)
-      - 每個電子域以水滴連接中心與外部原子呈現：
-            鍵結對 (bond)：顏色為 lightblue，且在 t=1 處畫出外部原子
-            孤對 (lp)：顏色為 pink，不畫 t=1 的外部圓球，而在中間標示兩個小黑點
-      - 若所有電子域皆為鍵結對且 show_angle_labels 為 True，則加上夾角標示
-      - 顯示座標軸
-    """
+    # 當 4 電子域時，為保證四個 lobe 角度完全一致，重新計算正四面體的座標（半徑固定為 2.5）
+    if len(domains) == 4:
+        R = 2.5
+        domains = [
+            {"pos": (0, 0, R), "type": "bond"},
+            {"pos": ((5 * math.sqrt(2)) / 3, 0, -R / 3), "type": "bond"},
+            {"pos": (-(5 * math.sqrt(2)) / 6, (5 * math.sqrt(6)) / 6, -R / 3), "type": "bond"},
+            {"pos": (-(5 * math.sqrt(2)) / 6, -(5 * math.sqrt(6)) / 6, -R / 3), "type": "bond"}
+        ]
     view = py3Dmol.view(width=600, height=600)
     add_axes(view, axis_length=3.0)
     view.addSphere({
@@ -209,7 +209,7 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
     elif ed_count == 3:
         view.rotate(90, 'z')
     elif ed_count == 4:
-        # 對於 4 電子域（正四面體），不做額外旋轉，保持預設指向正四面體四個角
+        # 4 電子域（正四面體）：已使用正確座標，不再旋轉
         pass
     elif ed_count == 6:
         if any(keyword in shape_name for keyword in ["平面四方", "T-shaped", "T形"]):
@@ -222,7 +222,7 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
         view.rotate(-90, 'x')
 
     view.zoomTo()
-    # 返回產生的 HTML 字串供 Streamlit 嵌入
+    # 返回生成的 HTML 字串，供 Streamlit 嵌入使用
     return view._make_html()
 
 # -------------------------------
