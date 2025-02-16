@@ -28,7 +28,7 @@ def dot_product(v1, v2):
 def normalize(v):
     n = norm(v)
     if n == 0:
-        return (0, 0, 0)
+        return (0,0,0)
     return (v[0]/n, v[1]/n, v[2]/n)
 
 def add_axes(view, axis_length=3.0):
@@ -164,7 +164,7 @@ def add_angle_labels(view, domains):
                 add_arc_between(view, domains[i]['pos'], domains[j]['pos'], segments=30, allow_180_label=allow_180)
 
 def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
-    # 若為 4 電子域，則強制改為理想正四面體排列（保留原 type）
+    # 若為4電子域，則強制改為理想正四面體排列（保留原 type）
     if len(domains) == 4:
         R = 2.5
         s = R / math.sqrt(3)
@@ -191,7 +191,7 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
             col = 'pink'
             include_ligand = False
         add_teardrop_lobe(view, x, y, z, color=col, steps=20, include_ligand=include_ligand)
-    if show_angle_labels and all(d['type']=='bond' for d in domains):
+    if show_angle_labels and all(d['type'] == 'bond' for d in domains):
         add_angle_labels(view, domains)
     
     ed_count = len(domains)
@@ -244,7 +244,7 @@ vsepr_geometries = {
         ]
     },
     "4_0": {
-        "shape_name": "4 電子域, 0 LP: Tetrahedral (四面體)",
+        "shape_name": "4 電子域, 0 LP: Tetrahedral (正四面體)",
         "domains": [
             {"pos": (2.357, 0, -0.8333), "type": "bond"},
             {"pos": (-1.1785, 2.0413, -0.8333), "type": "bond"},
@@ -271,7 +271,7 @@ vsepr_geometries = {
         ]
     },
     "5_0": {
-        "shape_name": "5 電子域, 0 LP: Trigonal Bipyramidal (三角雙錐)",
+        "shape_name": "5 電子域, 0 LP: Trigonal Bipyramidal (雙三角錐)",
         "domains": [
             {"pos": (0, 0, 2.5), "type": "bond"},
             {"pos": (0, 0, -2.5), "type": "bond"},
@@ -311,7 +311,7 @@ vsepr_geometries = {
         ]
     },
     "6_0": {
-        "shape_name": "6 電子域, 0 LP: Octahedral (八面體)",
+        "shape_name": "6 電子域, 0 LP: Octahedral (正八面體)",
         "domains": [
             {"pos": (0, 0, 2.5), "type": "bond"},
             {"pos": (0, 0, -2.5), "type": "bond"},
@@ -333,7 +333,7 @@ vsepr_geometries = {
         ]
     },
     "6_2": {
-        "shape_name": "6 電子域, 2 LP: Square Planar (平面四方)",
+        "shape_name": "6 電子域, 2 LP: Square Planar (平面四邊)",
         "domains": [
             {"pos": (0, 0, 2.5), "type": "lp"},
             {"pos": (0, 0, -2.5), "type": "lp"},
@@ -394,8 +394,8 @@ else:
 
 html_str = show_vsepr_teardrop(data["domains"], data["shape_name"], show_angle_labels=show_angles)
 
-# 顯示模型名稱，置中且字體較小
-st.markdown(f"<p style='font-size:14px; text-align:center;'>{data['shape_name']}</p>", unsafe_allow_html=True)
+# 模型名稱以稍大一點的字體置中（16px）
+st.markdown(f"<p style='font-size:16px; text-align:center;'>{data['shape_name']}</p>", unsafe_allow_html=True)
 
 # 將 3D 模型 HTML 轉成 base64，再嵌入 iframe，外層 iframe 寬高 380×380，內容置中
 html_bytes = html_str.encode('utf-8')
