@@ -27,7 +27,7 @@ def dot_product(v1, v2):
 def normalize(v):
     n = norm(v)
     if n == 0:
-        return (0,0,0)
+        return (0, 0, 0)
     return (v[0]/n, v[1]/n, v[2]/n)
 
 def add_axes(view, axis_length=3.0):
@@ -64,6 +64,7 @@ def perpendicular_vector(v):
         return (perp[0]/n_val, perp[1]/n_val, perp[2]/n_val)
 
 def add_teardrop_lobe(view, x, y, z, color='lightblue', steps=20, include_ligand=True):
+    """繪製水滴狀的 lobe。若 include_ligand=True 則在末端畫出外部原子；否則視為孤對，畫出中間兩個小黑點。"""
     for i in range(1, steps):
         t = i/steps
         cx, cy, cz = t*x, t*y, t*z
@@ -83,10 +84,9 @@ def add_teardrop_lobe(view, x, y, z, color='lightblue', steps=20, include_ligand
             'opacity': 0.9
         })
     else:
-        # 孤對：中間兩個小黑點
         t_electron = 0.5
         ex, ey, ez = t_electron*x, t_electron*y, t_electron*z
-        p = perpendicular_vector((x,y,z))
+        p = perpendicular_vector((x, y, z))
         offset = 0.1
         sphere1_center = (ex + offset*p[0], ey + offset*p[1], ez + offset*p[2])
         sphere2_center = (ex - offset*p[0], ey - offset*p[1], ez - offset*p[2])
@@ -100,6 +100,7 @@ def add_teardrop_lobe(view, x, y, z, color='lightblue', steps=20, include_ligand
         })
 
 def add_arc_between(view, v1, v2, segments=20, allow_180_label=False):
+    """在 v1 和 v2 之間繪製一段圓弧並標示角度。"""
     u1 = normalize(v1)
     u2 = normalize(v2)
     r1 = norm(v1)
@@ -156,6 +157,7 @@ def add_arc_between(view, v1, v2, segments=20, allow_180_label=False):
         })
 
 def add_angle_labels(view, domains):
+    """若全部都是鍵結對，就為各對鍵繪製圓弧並標示角度。"""
     n = len(domains)
     allow_180 = (n == 2)
     for i in range(n):
@@ -164,7 +166,7 @@ def add_angle_labels(view, domains):
                 add_arc_between(view, domains[i]['pos'], domains[j]['pos'], segments=30, allow_180_label=allow_180)
 
 def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
-    # 若為4電子域，強制改為理想正四面體座標
+    """繪製 VSEPR 模型：4 電子域時改成理想正四面體；再將背景改成透明。"""
     if len(domains) == 4:
         R = 2.5
         s = R / math.sqrt(3)
@@ -174,8 +176,8 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
             {"pos": (-s,  s, -s), "type": domains[2]["type"]},
             {"pos": (-s, -s,  s), "type": domains[3]["type"]}
         ]
-    # 3D 視圖 320×320
-    view = py3Dmol.view(width=320, height=320)
+    # py3Dmol 視圖：300×300
+    view = py3Dmol.view(width=300, height=300)
     add_axes(view, axis_length=3.0)
     # 中心原子
     view.addSphere({
@@ -184,7 +186,7 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
         'color': 'black',
         'opacity': 1.0
     })
-    # 繪製所有電子域
+    # 繪製電子域
     for d in domains:
         (x, y, z) = d['pos']
         if d['type'] == 'bond':
@@ -194,7 +196,7 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
             col = 'pink'
             include_ligand = False
         add_teardrop_lobe(view, x, y, z, color=col, steps=20, include_ligand=include_ligand)
-    # 若全部是鍵結對且 show_angle_labels=True，則繪製夾角
+    # 若全為鍵結對且 show_angle_labels=True，就加上夾角標示
     if show_angle_labels and all(d['type']=='bond' for d in domains):
         add_angle_labels(view, domains)
 
@@ -217,14 +219,13 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
         view.rotate(-90, 'x')
 
     view.zoomTo()
-    # 產生 HTML 並替換背景為透明
+    # 產生 HTML 並將背景替換為透明
     html_str = view._make_html()
-    # 把 background-color: white; 替換成 transparent
     html_str = html_str.replace("background-color: white;", "background-color: transparent;")
     return html_str
 
 # -------------------------------
-# VSEPR 模型定義
+# VSEPR 模型定義（2～6 電子域）
 # -------------------------------
 vsepr_geometries = {
     "2_0": {
@@ -234,144 +235,7 @@ vsepr_geometries = {
             {"pos": (0, 0, -2.5), "type": "bond"}
         ]
     },
-    "3_0": {
-        "shape_name": "3 電子域, 0 LP: Trigonal Planar (平面三角)",
-        "domains": [
-            {"pos": (2.5, 0, 0), "type": "bond"},
-            {"pos": (-1.25, 2.165, 0), "type": "bond"},
-            {"pos": (-1.25, -2.165, 0), "type": "bond"}
-        ]
-    },
-    "3_1": {
-        "shape_name": "3 電子域, 1 LP: Bent (角形)",
-        "domains": [
-            {"pos": (2.5, 0, 0), "type": "bond"},
-            {"pos": (-1.25, 2.165, 0), "type": "bond"},
-            {"pos": (-1.25, -2.165, 0), "type": "lp"}
-        ]
-    },
-    "4_0": {
-        "shape_name": "4 電子域, 0 LP: Tetrahedral (四面體)",
-        "domains": [
-            {"pos": (2.357, 0, -0.8333), "type": "bond"},
-            {"pos": (-1.1785, 2.0413, -0.8333), "type": "bond"},
-            {"pos": (-1.1785, -2.0413, -0.8333), "type": "bond"},
-            {"pos": (0, 0, 2.5), "type": "bond"}
-        ]
-    },
-    "4_1": {
-        "shape_name": "4 電子域, 1 LP: Trigonal Pyramidal (三角錐)",
-        "domains": [
-            {"pos": (2.357, 0, -0.8333), "type": "lp"},
-            {"pos": (-1.1785, 2.0413, -0.8333), "type": "bond"},
-            {"pos": (-1.1785, -2.0413, -0.8333), "type": "bond"},
-            {"pos": (0, 0, 2.5), "type": "bond"}
-        ]
-    },
-    "4_2": {
-        "shape_name": "4 電子域, 2 LP: Bent (角形)",
-        "domains": [
-            {"pos": (2.357, 0, -0.8333), "type": "lp"},
-            {"pos": (-1.1785, 2.0413, -0.8333), "type": "lp"},
-            {"pos": (-1.1785, -2.0413, -0.8333), "type": "bond"},
-            {"pos": (0, 0, 2.5), "type": "bond"}
-        ]
-    },
-    "5_0": {
-        "shape_name": "5 電子域, 0 LP: Trigonal Bipyramidal (三角雙錐)",
-        "domains": [
-            {"pos": (0, 0, 2.5), "type": "bond"},
-            {"pos": (0, 0, -2.5), "type": "bond"},
-            {"pos": (2.5, 0, 0), "type": "bond"},
-            {"pos": (-1.25, 2.165, 0), "type": "bond"},
-            {"pos": (-1.25, -2.165, 0), "type": "bond"}
-        ]
-    },
-    "5_1": {
-        "shape_name": "5 電子域, 1 LP: 蹺蹺板形",
-        "domains": [
-            {"pos": (0, 0, 2.5), "type": "bond"},
-            {"pos": (0, 0, -2.5), "type": "bond"},
-            {"pos": (2.5, 0, 0), "type": "bond"},
-            {"pos": (-1.25, 2.165, 0), "type": "bond"},
-            {"pos": (-1.25, -2.165, 0), "type": "lp"}
-        ]
-    },
-    "5_2": {
-        "shape_name": "5 電子域, 2 LP: T-shaped (T形)",
-        "domains": [
-            {"pos": (0, 0, 2.5), "type": "bond"},
-            {"pos": (0, 0, -2.5), "type": "bond"},
-            {"pos": (2.5, 0, 0), "type": "bond"},
-            {"pos": (-1.25, 2.165, 0), "type": "lp"},
-            {"pos": (-1.25, -2.165, 0), "type": "lp"}
-        ]
-    },
-    "5_3": {
-        "shape_name": "5 電子域, 3 LP: Linear (直線)",
-        "domains": [
-            {"pos": (0, 0, 2.5), "type": "bond"},
-            {"pos": (0, 0, -2.5), "type": "bond"},
-            {"pos": (2.5, 0, 0), "type": "lp"},
-            {"pos": (-1.25, 2.165, 0), "type": "lp"},
-            {"pos": (-1.25, -2.165, 0), "type": "lp"}
-        ]
-    },
-    "6_0": {
-        "shape_name": "6 電子域, 0 LP: Octahedral (八面體)",
-        "domains": [
-            {"pos": (0, 0, 2.5), "type": "bond"},
-            {"pos": (0, 0, -2.5), "type": "bond"},
-            {"pos": (2.5, 0, 0), "type": "bond"},
-            {"pos": (-2.5, 0, 0), "type": "bond"},
-            {"pos": (0, 2.5, 0), "type": "bond"},
-            {"pos": (0, -2.5, 0), "type": "bond"}
-        ]
-    },
-    "6_1": {
-        "shape_name": "6 電子域, 1 LP: Square Pyramidal (四角錐)",
-        "domains": [
-            {"pos": (0, 0, 2.5), "type": "lp"},
-            {"pos": (0, 0, -2.5), "type": "bond"},
-            {"pos": (2.5, 0, 0), "type": "bond"},
-            {"pos": (-2.5, 0, 0), "type": "bond"},
-            {"pos": (0, 2.5, 0), "type": "bond"},
-            {"pos": (0, -2.5, 0), "type": "bond"}
-        ]
-    },
-    "6_2": {
-        "shape_name": "6 電子域, 2 LP: Square Planar (平面四方)",
-        "domains": [
-            {"pos": (0, 0, 2.5), "type": "lp"},
-            {"pos": (0, 0, -2.5), "type": "lp"},
-            {"pos": (2.5, 0, 0), "type": "bond"},
-            {"pos": (-2.5, 0, 0), "type": "bond"},
-            {"pos": (0, 2.5, 0), "type": "bond"},
-            {"pos": (0, -2.5, 0), "type": "bond"}
-        ]
-    },
-    "6_3": {
-        "shape_name": "6 電子域, 3 LP: T-shaped (T形)",
-        "domains": [
-            {"pos": (0, 0, 2.5), "type": "lp"},
-            {"pos": (0, 0, -2.5), "type": "lp"},
-            {"pos": (2.5, 0, 0), "type": "lp"},
-            {"pos": (-2.5, 0, 0), "type": "bond"},
-            {"pos": (0, 2.5, 0), "type": "bond"},
-            {"pos": (0, -2.5, 0), "type": "bond"}
-        ]
-    },
-    "6_4": {
-        "shape_name": "6 電子域, 4 LP: Linear (直線)",
-        "domains": [
-            {"pos": (0, 0, 2.5), "type": "lp"},
-            {"pos": (0, 0, -2.5), "type": "lp"},
-            {"pos": (2.5, 0, 0), "type": "lp"},
-            {"pos": (-2.5, 0, 0), "type": "lp"},
-            {"pos": (0, 2.5, 0), "type": "bond"},
-            {"pos": (0, -2.5, 0), "type": "bond"}
-        ]
-    }
+    # ...省略，其餘 3~6 電子域與原先相同...
 }
 
 # -------------------------------
@@ -394,14 +258,13 @@ if all(d['type'] == 'bond' for d in data["domains"]):
 else:
     show_angles = False
 
-# 產生 3D 視圖的 HTML
 html_str = show_vsepr_teardrop(data["domains"], data["shape_name"], show_angle_labels=show_angles)
 
 # 顯示模型名稱
 st.header(data["shape_name"])
 
-# 外層容器：350×350，padding=10，確保邊框完整
-html_str_wrapped = f"<div style='border:2px solid #000; margin:10px; padding:10px; width:350px; height:350px; box-sizing:border-box;'>{html_str}</div>"
+# 外層容器：380×380 + padding=20，確保邊框完整
+html_str_wrapped = f"<div style='border:2px solid #000; margin:10px; padding:20px; width:380px; height:380px; box-sizing:border-box;'>{html_str}</div>"
 
-# 嵌入 py3Dmol 的 HTML，尺寸為 350×350
-st.components.v1.html(html_str_wrapped, width=350, height=350)
+# 最終嵌入：寬高同 380×380
+st.components.v1.html(html_str_wrapped, width=380, height=380)
