@@ -143,8 +143,7 @@ def add_angle_labels(view, domains):
 
 def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
     if len(domains) == 4:
-        R = 2.5
-        s = R / math.sqrt(3)
+        R = 2.5; s = R / math.sqrt(3)
         domains = [
             {"pos": (s, s, s), "type": domains[0]["type"]},
             {"pos": (s, -s, -s), "type": domains[1]["type"]},
@@ -153,12 +152,10 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
         ]
     view = py3Dmol.view(width=360, height=360)
     add_axes(view, axis_length=3.0)
-    view.addSphere({
-        'center': {'x': 0, 'y': 0, 'z': 0},
-        'radius': 0.5,
-        'color': 'black',
-        'opacity': 1.0
-    })
+    view.addSphere({'center': {'x': 0, 'y': 0, 'z': 0},
+                    'radius': 0.5,
+                    'color': 'black',
+                    'opacity': 1.0})
     for d in domains:
         x, y, z = d['pos']
         col = 'lightblue' if d['type'] == 'bond' else 'pink'
@@ -309,3 +306,42 @@ iframe_html = f"""
 st.markdown(iframe_html, unsafe_allow_html=True)
 
 st.markdown("</div>", unsafe_allow_html=True)
+
+# -------------------------------
+# 加入像素風小貓（像素風、可移動）
+# -------------------------------
+st.markdown(
+    """
+    <style>
+    #cat {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      width: 64px;
+      height: 64px;
+      cursor: pointer;
+      z-index: 9999;
+      image-rendering: pixelated;
+      animation: moveCat 8s linear infinite;
+    }
+    @keyframes moveCat {
+      0% { transform: translate(0, 0); }
+      25% { transform: translate(-20px, -20px); }
+      50% { transform: translate(-40px, 0); }
+      75% { transform: translate(-20px, 20px); }
+      100% { transform: translate(0, 0); }
+    }
+    </style>
+    <img id="cat" src="https://i.imgur.com/JXK3Fif.png" alt="Pixel Cat">
+    <script>
+    const cat = document.getElementById('cat');
+    cat.addEventListener('click', function() {
+      // 當點擊小貓時，隨機移動位置（閃開效果）
+      const randomX = Math.floor(Math.random() * 200) - 100;
+      const randomY = Math.floor(Math.random() * 200) - 100;
+      cat.style.transform = `translate(${randomX}px, ${randomY}px)`;
+    });
+    </script>
+    """,
+    unsafe_allow_html=True
+)
