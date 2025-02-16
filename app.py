@@ -3,34 +3,36 @@ import py3Dmol
 import math
 import base64
 
-# 設定頁面配置
+# 設定頁面配置與全局 CSS
 st.set_page_config(page_title="VSEPR 模型", layout="centered")
-
-# 自訂 CSS：讓 radio 按鈕水平排列以及所有內容置中
 st.markdown(
     """
     <style>
+    /* 讓 radio 按鈕水平排列且置中 */
     div[data-baseweb="radio"] > div {
       flex-direction: row;
       flex-wrap: wrap;
       justify-content: center;
     }
+    /* 全頁置中 */
     .center-all {
       text-align: center;
       margin: auto;
     }
-    /* 手機版調整字體與邊距 */
+    /* 調整標題與說明字體 */
+    h1 { font-size: 28px; }
+    h2 { font-size: 20px; }
+    p { font-size: 16px; }
+    /* 手機版微調 */
     @media screen and (max-width: 600px) {
         h1 { font-size: 24px !important; }
+        h2 { font-size: 18px !important; }
         p { font-size: 14px !important; }
     }
     </style>
     """,
     unsafe_allow_html=True,
 )
-
-# 包裹整個頁面內容
-st.markdown("<div class='center-all'>", unsafe_allow_html=True)
 
 # -------------------------------
 # 工具函式
@@ -43,7 +45,7 @@ def dot_product(v1, v2):
 
 def normalize(v):
     n = norm(v)
-    return tuple(i/n for i in v) if n else (0, 0, 0)
+    return tuple(i/n for i in v) if n else (0,0,0)
 
 def add_axes(view, axis_length=3.0):
     colors = ['red', 'green', 'blue']
@@ -52,7 +54,7 @@ def add_axes(view, axis_length=3.0):
     for s, e, c in zip(starts, ends, colors):
         view.addCylinder({
             'start': {'x': s[0], 'y': s[1], 'z': s[2]},
-            'end':   {'x': e[0], 'y': e[1], 'z': e[2]},
+            'end': {'x': e[0], 'y': e[1], 'z': e[2]},
             'radius': 0.05,
             'color': c
         })
@@ -62,8 +64,8 @@ def teardrop_radius_modified(t, A=0.8, t0=0.8):
 
 def perpendicular_vector(v):
     vx, vy, vz = v
-    if abs(vx)<1e-6 and abs(vy)<1e-6:
-        return (1, 0, 0)
+    if abs(vx) < 1e-6 and abs(vy) < 1e-6:
+        return (1,0,0)
     perp = (-vy, vx, 0)
     n_val = norm(perp)
     return tuple(i/n_val for i in perp)
@@ -89,7 +91,7 @@ def add_teardrop_lobe(view, x, y, z, color='lightblue', steps=20, include_ligand
     else:
         t_electron = 0.5
         ex, ey, ez = t_electron*x, t_electron*y, t_electron*z
-        p = perpendicular_vector((x, y, z))
+        p = perpendicular_vector((x,y,z))
         offset = 0.1
         for center in [(ex+offset*p[0], ey+offset*p[1], ez+offset*p[2]),
                        (ex-offset*p[0], ey-offset*p[1], ez-offset*p[2])]:
@@ -104,7 +106,7 @@ def add_arc_between(view, v1, v2, segments=20, allow_180_label=False):
     u1, u2 = normalize(v1), normalize(v2)
     r = (((norm(v1)+norm(v2))/2.0)*1.1)
     dp = dot_product(u1, u2)
-    if abs(dp+1.0)<1e-6:
+    if abs(dp+1.0) < 1e-6:
         angle, n_vec = math.pi, perpendicular_vector(u1)
     else:
         angle = math.acos(max(-1.0, min(1.0, dp)))
@@ -149,8 +151,7 @@ def add_angle_labels(view, domains):
 
 def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
     if len(domains)==4:
-        R = 2.5
-        s = R/math.sqrt(3)
+        R = 2.5; s = R/math.sqrt(3)
         domains = [{"pos": ( s,  s,  s), "type": domains[0]["type"]},
                    {"pos": ( s, -s, -s), "type": domains[1]["type"]},
                    {"pos": (-s,  s, -s), "type": domains[2]["type"]},
@@ -158,9 +159,7 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
     view = py3Dmol.view(width=360, height=360)
     add_axes(view, axis_length=3.0)
     view.addSphere({'center': {'x': 0, 'y': 0, 'z': 0},
-                    'radius': 0.5,
-                    'color':'black',
-                    'opacity': 1.0})
+                    'radius': 0.5, 'color': 'black', 'opacity': 1.0})
     for d in domains:
         x,y,z = d['pos']
         col = 'lightblue' if d['type']=='bond' else 'pink'
@@ -281,11 +280,11 @@ vsepr_geometries = {
 # -------------------------------
 st.markdown("<h1 style='text-align: center;'>VSEPR 模型</h1>", unsafe_allow_html=True)
 
-# 選擇電子域數（radio 水平排列）
+# 選擇電子域數（radio 水平排列，並置中標題）
 domain_counts = sorted({ key.split('_')[0] for key in vsepr_geometries.keys() }, key=int)
 selected_count = st.radio("選擇電子域數", domain_counts, horizontal=True)
 
-# 從該電子域數下依 LP 數排序的模型選項（radio 水平排列）
+# 選擇該電子域數下的模型（依 LP 數排序，水平排列）
 group_options = sorted([key for key in vsepr_geometries if key.startswith(selected_count)],
                        key=lambda x: int(x.split('_')[1]))
 if not group_options:
@@ -298,10 +297,10 @@ show_angles = st.checkbox("顯示夾角標示", value=True) if all(d['type']=='b
 
 html_str = show_vsepr_teardrop(data["domains"], data["shape_name"], show_angle_labels=show_angles)
 
-# 模型名稱置中，字體稍大（16px）
+# 模型名稱置中，字體 16px
 st.markdown(f"<p style='font-size:16px; text-align:center;'>{data['shape_name']}</p>", unsafe_allow_html=True)
 
-# 將 3D 模型 HTML 轉成 base64，再嵌入 iframe，外層尺寸 380×380，置中
+# 將 3D 模型 HTML 轉為 base64 並嵌入 iframe（外層尺寸 380×380，置中）
 html_base64 = base64.b64encode(html_str.encode('utf-8')).decode('utf-8')
 iframe_html = f"""
 <iframe src="data:text/html;base64,{html_base64}" style="border:2px solid #000; width:380px; height:380px; box-sizing:border-box; display:block; margin:auto;" frameborder="0"></iframe>
