@@ -143,7 +143,8 @@ def add_angle_labels(view, domains):
 
 def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
     if len(domains) == 4:
-        R = 2.5; s = R / math.sqrt(3)
+        R = 2.5
+        s = R / math.sqrt(3)
         domains = [
             {"pos": (s, s, s), "type": domains[0]["type"]},
             {"pos": (s, -s, -s), "type": domains[1]["type"]},
@@ -152,10 +153,12 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
         ]
     view = py3Dmol.view(width=360, height=360)
     add_axes(view, axis_length=3.0)
-    view.addSphere({'center': {'x': 0, 'y': 0, 'z': 0},
-                    'radius': 0.5,
-                    'color': 'black',
-                    'opacity': 1.0})
+    view.addSphere({
+        'center': {'x': 0, 'y': 0, 'z': 0},
+        'radius': 0.5,
+        'color': 'black',
+        'opacity': 1.0
+    })
     for d in domains:
         x, y, z = d['pos']
         col = 'lightblue' if d['type'] == 'bond' else 'pink'
@@ -291,7 +294,7 @@ else:
     selected_key = st.radio("選擇模型", group_options, horizontal=True)
 
 data = vsepr_geometries[selected_key]
-show_angles = st.checkbox("顯示夾角標示", value=True) if all(d['type']=='bond' for d in data["domains"]) else False
+show_angles = st.checkbox("顯示夾角標示", value=True) if all(d['type'] == 'bond' for d in data["domains"]) else False
 
 html_str = show_vsepr_teardrop(data["domains"], data["shape_name"], show_angle_labels=show_angles)
 
@@ -308,38 +311,42 @@ st.markdown(iframe_html, unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
 
 # -------------------------------
-# 加入像素風小貓（像素風、可移動）
+# 加入像素風 Chrome 離線恐龍（dino）
 # -------------------------------
 st.markdown(
     """
     <style>
-    #cat {
+    #dino {
       position: fixed;
-      bottom: 10px;
-      right: 10px;
-      width: 64px;
-      height: 64px;
+      top: 10%;
+      left: 10%;
+      width: 80px;
+      height: auto;
       cursor: pointer;
-      z-index: 9999;
+      z-index: 10000;
       image-rendering: pixelated;
-      animation: moveCat 8s linear infinite;
-    }
-    @keyframes moveCat {
-      0% { transform: translate(0, 0); }
-      25% { transform: translate(-20px, -20px); }
-      50% { transform: translate(-40px, 0); }
-      75% { transform: translate(-20px, 20px); }
-      100% { transform: translate(0, 0); }
+      transition: top 0.5s ease, left 0.5s ease;
     }
     </style>
-    <img id="cat" src="https://i.imgur.com/JXK3Fif.png" alt="Pixel Cat">
+    <img id="dino" src="https://www.gstatic.com/chrome/dino/dino.png" alt="Pixel Dino">
     <script>
-    const cat = document.getElementById('cat');
-    cat.addEventListener('click', function() {
-      // 當點擊小貓時，隨機移動位置（閃開效果）
-      const randomX = Math.floor(Math.random() * 200) - 100;
-      const randomY = Math.floor(Math.random() * 200) - 100;
-      cat.style.transform = `translate(${randomX}px, ${randomY}px)`;
+    function getRandomPosition() {
+        var dino = document.getElementById('dino');
+        var maxX = window.innerWidth - dino.clientWidth;
+        var maxY = window.innerHeight - dino.clientHeight;
+        var randomX = Math.floor(Math.random() * maxX);
+        var randomY = Math.floor(Math.random() * maxY);
+        return {x: randomX, y: randomY};
+    }
+    var dino = document.getElementById('dino');
+    // 初始隨機位置
+    var pos = getRandomPosition();
+    dino.style.left = pos.x + "px";
+    dino.style.top = pos.y + "px";
+    dino.addEventListener('click', function() {
+        var newPos = getRandomPosition();
+        dino.style.left = newPos.x + "px";
+        dino.style.top = newPos.y + "px";
     });
     </script>
     """,
