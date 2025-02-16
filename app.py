@@ -2,6 +2,7 @@ import streamlit as st
 import py3Dmol
 import math
 import base64
+import streamlit.components.v1 as components
 
 # 設定頁面配置與全局 CSS（置中、水平排列 radio）
 st.set_page_config(page_title="VSEPR 模型", layout="centered")
@@ -310,49 +311,45 @@ st.markdown(iframe_html, unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
 
 # -------------------------------
-# 加入像素風小恐龍（使用內建 Emoji 🦖 模擬像素風 dino）
+# 加入像素風 Chrome 離線恐龍（使用內建 Emoji 🦖）
 # -------------------------------
-st.markdown(
-    """
-    <style>
-    #dino {
-      position: fixed;
-      top: 10%;
-      left: 10%;
-      font-size: 80px;
-      cursor: pointer;
-      z-index: 10000;
-      transition: top 0.5s ease, left 0.5s ease;
-    }
-    </style>
-    <div id="dino">🦖</div>
-    <script>
-      function getRandomPosition() {
-          var dino = document.getElementById('dino');
-          var maxX = window.innerWidth - dino.offsetWidth;
-          var maxY = window.innerHeight - dino.offsetHeight;
-          var randomX = Math.floor(Math.random() * maxX);
-          var randomY = Math.floor(Math.random() * maxY);
-          return {x: randomX, y: randomY};
-      }
-      const dino = document.getElementById('dino');
-      // 初始隨機位置
-      var pos = getRandomPosition();
-      dino.style.left = pos.x + "px";
-      dino.style.top = pos.y + "px";
-      // 每隔兩秒自動移動
-      setInterval(function(){
-          var newPos = getRandomPosition();
-          dino.style.left = newPos.x + "px";
-          dino.style.top = newPos.y + "px";
-      }, 2000);
-      // 點擊時也移動
-      dino.addEventListener('click', function() {
-          var newPos = getRandomPosition();
-          dino.style.left = newPos.x + "px";
-          dino.style.top = newPos.y + "px";
-      });
-    </script>
-    """,
-    unsafe_allow_html=True
-)
+dino_html = """
+<style>
+#dino {
+  position: fixed;
+  top: 10%;
+  left: 10%;
+  font-size: 80px;
+  cursor: pointer;
+  z-index: 10000;
+  transition: top 0.5s ease, left 0.5s ease;
+}
+</style>
+<div id="dino">🦖</div>
+<script>
+function getRandomPosition() {
+    var dino = document.getElementById('dino');
+    var maxX = window.innerWidth - dino.offsetWidth;
+    var maxY = window.innerHeight - dino.offsetHeight;
+    var randomX = Math.floor(Math.random() * maxX);
+    var randomY = Math.floor(Math.random() * maxY);
+    return {x: randomX, y: randomY};
+}
+var dino = document.getElementById('dino');
+var pos = getRandomPosition();
+dino.style.left = pos.x + "px";
+dino.style.top = pos.y + "px";
+setInterval(function(){
+    var newPos = getRandomPosition();
+    dino.style.left = newPos.x + "px";
+    dino.style.top = newPos.y + "px";
+}, 2000);
+dino.addEventListener('click', function() {
+    var newPos = getRandomPosition();
+    dino.style.left = newPos.x + "px";
+    dino.style.top = newPos.y + "px";
+});
+</script>
+"""
+# 用 components.html 嵌入完整的 HTML+JS 讓 dino 生效
+components.html(dino_html, height=300)
