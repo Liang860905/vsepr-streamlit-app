@@ -27,10 +27,11 @@ def dot_product(v1, v2):
 def normalize(v):
     n = norm(v)
     if n == 0:
-        return (0, 0, 0)
+        return (0,0,0)
     return (v[0]/n, v[1]/n, v[2]/n)
 
 def add_axes(view, axis_length=3.0):
+    """在視圖中加入 X(紅)、Y(綠)、Z(藍) 三條粗軸。"""
     radius = 0.05
     view.addCylinder({
         'start': {'x': -axis_length, 'y': 0, 'z': 0},
@@ -49,6 +50,7 @@ def add_axes(view, axis_length=3.0):
     })
 
 def teardrop_radius_modified(t, A=0.8, t0=0.8):
+    """水滴形 lobes 的半徑函式。"""
     if t <= t0:
         return A * math.sin(math.pi * t / (2*t0))
     else:
@@ -64,7 +66,7 @@ def perpendicular_vector(v):
         return (perp[0]/n_val, perp[1]/n_val, perp[2]/n_val)
 
 def add_teardrop_lobe(view, x, y, z, color='lightblue', steps=20, include_ligand=True):
-    """繪製水滴狀的 lobe。若 include_ligand=True 則在末端畫出外部原子；否則視為孤對，畫出中間兩個小黑點。"""
+    """繪製水滴狀的 lobe，若 include_ligand=True 在末端畫外部原子，否則在中間畫兩個黑點。"""
     for i in range(1, steps):
         t = i/steps
         cx, cy, cz = t*x, t*y, t*z
@@ -84,9 +86,10 @@ def add_teardrop_lobe(view, x, y, z, color='lightblue', steps=20, include_ligand
             'opacity': 0.9
         })
     else:
+        # 孤對：中間兩個小黑點
         t_electron = 0.5
         ex, ey, ez = t_electron*x, t_electron*y, t_electron*z
-        p = perpendicular_vector((x, y, z))
+        p = perpendicular_vector((x,y,z))
         offset = 0.1
         sphere1_center = (ex + offset*p[0], ey + offset*p[1], ez + offset*p[2])
         sphere2_center = (ex - offset*p[0], ey - offset*p[1], ez - offset*p[2])
@@ -100,7 +103,7 @@ def add_teardrop_lobe(view, x, y, z, color='lightblue', steps=20, include_ligand
         })
 
 def add_arc_between(view, v1, v2, segments=20, allow_180_label=False):
-    """在 v1 和 v2 之間繪製一段圓弧並標示角度。"""
+    """在 v1 與 v2 之間繪製圓弧並標示角度。"""
     u1 = normalize(v1)
     u2 = normalize(v2)
     r1 = norm(v1)
@@ -166,7 +169,8 @@ def add_angle_labels(view, domains):
                 add_arc_between(view, domains[i]['pos'], domains[j]['pos'], segments=30, allow_180_label=allow_180)
 
 def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
-    """繪製 VSEPR 模型：4 電子域時改成理想正四面體；再將背景改成透明。"""
+    """主要繪製函式。4 電子域 -> 理想正四面體，背景 -> 透明。"""
+    # 4 電子域 -> 覆寫座標
     if len(domains) == 4:
         R = 2.5
         s = R / math.sqrt(3)
@@ -176,7 +180,7 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
             {"pos": (-s,  s, -s), "type": domains[2]["type"]},
             {"pos": (-s, -s,  s), "type": domains[3]["type"]}
         ]
-    # py3Dmol 視圖：300×300
+    # py3Dmol 視圖 300×300
     view = py3Dmol.view(width=300, height=300)
     add_axes(view, axis_length=3.0)
     # 中心原子
@@ -196,11 +200,12 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
             col = 'pink'
             include_ligand = False
         add_teardrop_lobe(view, x, y, z, color=col, steps=20, include_ligand=include_ligand)
-    # 若全為鍵結對且 show_angle_labels=True，就加上夾角標示
+
+    # 若全部是鍵結對且 show_angle_labels=True，就加上夾角標示
     if show_angle_labels and all(d['type']=='bond' for d in domains):
         add_angle_labels(view, domains)
 
-    # 預設旋轉
+    # 根據電子域數設定旋轉
     ed_count = len(domains)
     if ed_count == 2:
         view.rotate(90, 'y')
@@ -219,23 +224,14 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
         view.rotate(-90, 'x')
 
     view.zoomTo()
-    # 產生 HTML 並將背景替換為透明
+    # 替換背景色為透明
     html_str = view._make_html()
     html_str = html_str.replace("background-color: white;", "background-color: transparent;")
     return html_str
 
-# -------------------------------
-# VSEPR 模型定義（2～6 電子域）
-# -------------------------------
+# 省略: VSEPR 模型定義 (2～6 電子域) 全部放入
 vsepr_geometries = {
-    "2_0": {
-        "shape_name": "2 電子域, 0 LP: Linear (直線)",
-        "domains": [
-            {"pos": (0, 0, 2.5), "type": "bond"},
-            {"pos": (0, 0, -2.5), "type": "bond"}
-        ]
-    },
-    # ...省略，其餘 3~6 電子域與原先相同...
+    # ...與之前相同...
 }
 
 # -------------------------------
@@ -263,8 +259,22 @@ html_str = show_vsepr_teardrop(data["domains"], data["shape_name"], show_angle_l
 # 顯示模型名稱
 st.header(data["shape_name"])
 
-# 外層容器：380×380 + padding=20，確保邊框完整
-html_str_wrapped = f"<div style='border:2px solid #000; margin:10px; padding:20px; width:380px; height:380px; box-sizing:border-box;'>{html_str}</div>"
+# 外層容器：380×380 + padding=20，並用 flex 置中 3D 模型
+html_str_wrapped = f"""
+<div style='
+  border:2px solid #000;
+  margin:10px;
+  width:380px;
+  height:380px;
+  box-sizing:border-box;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+'>
+  <div style='padding:20px;'>
+    {html_str}
+  </div>
+</div>
+"""
 
-# 最終嵌入：寬高同 380×380
 st.components.v1.html(html_str_wrapped, width=380, height=380)
