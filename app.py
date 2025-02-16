@@ -14,7 +14,7 @@ def dot_product(v1, v2):
 def normalize(v):
     n = norm(v)
     if n == 0:
-        return (0,0,0)
+        return (0, 0, 0)
     return (v[0]/n, v[1]/n, v[2]/n)
 
 def add_axes(view, axis_length=3.0):
@@ -44,7 +44,7 @@ def teardrop_radius_modified(t, A=0.8, t0=0.8):
 def perpendicular_vector(v):
     vx, vy, vz = v
     if abs(vx) < 1e-6 and abs(vy) < 1e-6:
-        return (1,0,0)
+        return (1, 0, 0)
     else:
         perp = (-vy, vx, 0)
         n_val = norm(perp)
@@ -72,7 +72,7 @@ def add_teardrop_lobe(view, x, y, z, color='lightblue', steps=20, include_ligand
     else:
         t_electron = 0.5
         ex, ey, ez = t_electron*x, t_electron*y, t_electron*z
-        p = perpendicular_vector((x,y,z))
+        p = perpendicular_vector((x, y, z))
         offset = 0.1
         sphere1_center = (ex + offset*p[0], ey + offset*p[1], ez + offset*p[2])
         sphere2_center = (ex - offset*p[0], ey - offset*p[1], ez - offset*p[2])
@@ -150,7 +150,7 @@ def add_angle_labels(view, domains):
                 add_arc_between(view, domains[i]['pos'], domains[j]['pos'], segments=30, allow_180_label=allow_180)
 
 def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
-    # 當 4 電子域時，無論原始設定如何，都以理想正四面體座標排列，保留原 type
+    # 當 4 電子域時，無論原始設定如何，都以理想正四面體座標排列（保留原 type）
     if len(domains) == 4:
         R = 2.5
         s = R / math.sqrt(3)
@@ -160,7 +160,7 @@ def show_vsepr_teardrop(domains, shape_name, show_angle_labels=True):
             {"pos": (-s,  s, -s), "type": domains[2]["type"]},
             {"pos": (-s, -s,  s), "type": domains[3]["type"]}
         ]
-    view = py3Dmol.view(width=350, height=350)  # 調整尺寸以適合手機瀏覽
+    view = py3Dmol.view(width=350, height=350)
     add_axes(view, axis_length=3.0)
     view.addSphere({
         'center': {'x': 0, 'y': 0, 'z': 0},
@@ -355,7 +355,7 @@ vsepr_geometries = {
 # Streamlit 主程式（不使用側邊欄）
 # -------------------------------
 st.title("VSEPR 模型互動視圖")
-selected_key = st.selectbox("選擇模型", sorted(vsepr_geometries.keys()))
+selected_key = st.radio("選擇模型", sorted(vsepr_geometries.keys()))
 data = vsepr_geometries[selected_key]
 if all(d['type'] == 'bond' for d in data["domains"]):
     show_angles = st.checkbox("顯示夾角標示", value=True)
@@ -363,5 +363,5 @@ else:
     show_angles = False
 html_str = show_vsepr_teardrop(data["domains"], data["shape_name"], show_angle_labels=show_angles)
 st.header(data["shape_name"])
-html_str_wrapped = f"<div style='border:2px solid #000; margin:10px; padding:5px; max-width:100%;'>{html_str}</div>"
+html_str_wrapped = f"<div style='border:2px solid #000; margin:10px; padding:5px; max-width:100%; box-sizing:border-box;'>{html_str}</div>"
 st.components.v1.html(html_str_wrapped, width=350, height=350)
